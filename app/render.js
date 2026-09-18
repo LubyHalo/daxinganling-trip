@@ -169,7 +169,7 @@ export function dayCard(vm, day, opts = {}) {
       <button class="mini" data-act="edit-stay" data-date="${esc(day.date)}">改</button>
     </div>`);
   }
-  if (day.todos.length) body.push(`<div class="todo-block"><div class="blk-t">待办</div>${day.todos.map((t) => todoRow(t)).join('')}</div>`);
+  if (day.todos.length) body.push(`<div class="todo-block"><div class="blk-t">待办</div>${day.todos.map((t) => todoRow(t, { showDate: false })).join('')}</div>`);
   if (day.intel.length) {
     body.push(`<details class="intel"><summary>情报 ${day.intel.length} 条</summary><ul>${day.intel.map((i) => `<li>${esc(i)}</li>`).join('')}</ul></details>`);
   }
@@ -206,11 +206,23 @@ function stopRow(vm, stop, day, opts = {}) {
   return `<div class="card">${prefix}<ul class="stops">${stopLi(vm, stop, day)}</ul></div>`;
 }
 
-function todoRow(t) {
+/** 9.20 这种短日期：待办列表里足够明确，又不抢文字的宽度 */
+function shortDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  return m ? `${Number(m[2])}.${Number(m[3])}` : '';
+}
+
+/**
+ * 待办行。日期只在跨天的地方显示（「还没办的事」卡片、索引页）——
+ * 在当天行程里它上面就是日期，重复显示只会挤掉文字。
+ */
+function todoRow(t, opts = {}) {
+  const showDate = opts.showDate !== false && Boolean(t.day || t.dateLabel);
+  const label = t.day ? shortDate(t.day) : esc(t.dateLabel || '');
   return `<label class="todo ${t.done ? 'done' : ''}" data-act="todo" data-id="${esc(t.id)}">
     <input type="checkbox" ${t.done ? 'checked' : ''}>
-    <span>${esc(t.text)}</span>
-    ${t.dateLabel ? `<span class="muted">${esc(t.dateLabel)}</span>` : ''}
+    <span class="todo-text">${esc(t.text)}</span>
+    ${showDate ? `<span class="todo-date">${label}</span>` : ''}
   </label>`;
 }
 

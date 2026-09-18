@@ -86,6 +86,24 @@ step('渲染：顶部栏与今日视图', () => {
   assert.equal($$('#tabbar button').length, 4);
 });
 
+step('待办排版：当天内不重复日期，跨天列表用短日期（回归测试）', () => {
+  const inDay = $$('.day .todo-block .todo');
+  assert.ok(inDay.length > 0, '当天的待办块应存在');
+  for (const t of inDay) {
+    assert.equal(t.querySelector('.todo-date'), null, '当天行程里的待办不必重复显示日期（上面就是日期）');
+  }
+  const crossDay = $$('.todo').filter((t) => !t.closest('.day'));
+  assert.ok(crossDay.length > 0, '跨天的「还没办的事」卡片应存在');
+  for (const t of crossDay) {
+    const d = t.querySelector('.todo-date');
+    assert.ok(d, '跨天待办必须显示是哪天的');
+    assert.match(d.textContent.trim(), /^\d{1,2}\.\d{1,2}$/, `日期应为 9.20 这种短格式，实际是「${d.textContent.trim()}」`);
+  }
+  const first = crossDay[0];
+  assert.ok(first.querySelector('.todo-text'), '待办文字要有独立元素，才能只让文字伸缩、日期固定');
+  assert.ok(!/\d+月\d+日/.test(first.textContent), '跨天待办里不该再出现「9月20日 周六」这种长日期');
+});
+
 step('打卡：产生确定性 id 的记录，并记录实际时间', async () => {
   const btn = $('[data-act="quick-check"]');
   const stopId = btn.dataset.id;

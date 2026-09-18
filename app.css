@@ -182,10 +182,14 @@ h3.note-day { font-size: .95rem; color: var(--ink-2); margin: 18px 4px 8px; font
 
 .todo-block { margin-top: 12px; }
 .blk-t { font-size: .76rem; color: var(--ink-2); letter-spacing: .04em; margin-bottom: 4px; }
-.todo { display: flex; align-items: center; gap: 10px; padding: 9px 2px; font-size: .95rem; }
-.todo input { width: 20px; height: 20px; accent-color: var(--brand); }
-.todo span { flex: 1; }
-.todo.done span { color: var(--ink-2); text-decoration: line-through; }
+/* 待办行：文字占满剩余宽度，日期固定不伸缩。
+   注意不要把 flex:1 加在 .todo 的所有 span 上——那样日期也会跟着抢宽度，
+   长待办会被挤成一堆换行。 */
+.todo { display: flex; align-items: flex-start; gap: 10px; padding: 10px 2px; font-size: .95rem; }
+.todo input { flex: none; width: 20px; height: 20px; margin-top: 3px; accent-color: var(--brand); }
+.todo .todo-text { flex: 1 1 auto; min-width: 0; }
+.todo .todo-date { flex: 0 0 auto; white-space: nowrap; font-size: .76rem; color: var(--ink-2); margin-top: 4px; letter-spacing: .02em; }
+.todo.done .todo-text { color: var(--ink-2); text-decoration: line-through; }
 
 .intel { margin-top: 10px; font-size: .9rem; }
 .intel summary { color: var(--brand-2); padding: 6px 0; }
