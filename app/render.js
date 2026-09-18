@@ -267,8 +267,14 @@ export function sheetSync(vm) {
 }
 
 export function sheetSettings(vm) {
+  const offline = vm.offlineReady === true
+    ? '<span class="chip ok">已就绪</span> 断网也能打开、能打卡、能写手记。'
+    : vm.offlineReady === false
+      ? '<span class="chip warn">准备中</span> 保持联网几秒钟，缓存完就好。'
+      : '<span class="chip">无法检测</span> 这台浏览器不支持离线缓存，请换 Safari / Chrome 打开。';
   return `<h3>设置</h3>
     <div class="sheet-sub">${esc(vm.trip.meta.title)}</div>
+    <div class="sync-block"><div class="blk-t">离线缓存</div><div class="hint">${offline}</div></div>
     <div class="field"><label>配色</label>
       <div class="seg">
         <button class="seg-b ${vm.theme === 'auto' ? 'on' : ''}" data-act="set-theme" data-v="auto">跟随系统</button>

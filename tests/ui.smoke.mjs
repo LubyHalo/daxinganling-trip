@@ -234,6 +234,7 @@ step('删除 + 撤销：软删除后可以恢复', async () => {
 step('主题切换与设置页', async () => {
   await click('[data-act="settings"]');
   assert.match($('#sheet').textContent, /还没确认的信息/, '设置页应列出待确认信息');
+  assert.match($('#sheet').textContent, /离线缓存/, '设置页应显示离线缓存状态（让用户能亲眼确认离线已就绪）');
   await click('[data-act="set-theme"][data-v="dark"]');
   assert.equal(window.document.documentElement.getAttribute('data-theme'), 'dark');
   const meta = JSON.parse(window.localStorage.getItem('dtrip.meta.v1'));

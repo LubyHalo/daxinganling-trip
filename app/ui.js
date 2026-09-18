@@ -196,6 +196,7 @@ function buildViewModel() {
     trip, days, phase, todayDay, deferredIntoToday, flightCards, allTodos,
     records: state.records, meta: state.meta, theme: state.theme, online: state.online,
     today: state.today,
+    offlineReady: state.offlineReady,
     todayLabel: formatCN(state.today),
     daysToStart: daysBetween(state.today, trip.meta.start),
     expanded: state.expanded,
@@ -502,19 +503,35 @@ function setTheme(v) {
 
 function registerSW() {
   if (!('serviceWorker' in navigator)) return;
+  checkOfflineReady();
   navigator.serviceWorker.register('sw.js').then((reg) => {
     const check = () => {
       if (reg.waiting) { state.swWaiting = reg.waiting; render(); }
     };
     check();
+    checkOfflineReady();
     reg.addEventListener('updatefound', () => {
       const nw = reg.installing;
       if (!nw) return;
       nw.addEventListener('statechange', () => {
+        if (nw.state === 'installed') { checkOfflineReady(); }
         if (nw.state === 'installed' && navigator.serviceWorker.controller) { state.swWaiting = nw; render(); }
       });
     });
   }).catch(() => {});
+}
+
+/** 离线是否真的就绪：本地必须已经有一份应用缓存。这是整套方案最关键的状态，
+    所以它必须能被用户看见，而不是靠相信。 */
+async function checkOfflineReady() {
+  if (!('caches' in window)) { state.offlineReady = null; return; }
+  try {
+    const keys = await caches.keys();
+    state.offlineReady = keys.some((k) => k.startsWith('dtrip-'));
+  } catch {
+    state.offlineReady = null;
+  }
+  render();
 }
 
 /* ---------------- 事件 ---------------- */
