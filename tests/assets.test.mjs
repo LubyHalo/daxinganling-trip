@@ -93,9 +93,23 @@ check('租车信息结构完整（归程时刻表依赖它）', () => {
   const kinds = v.events.map((e) => e.kind).join(',');
   assert.equal(kinds, 'pickup,dropoff');
   for (const e of v.events) assert.match(e.at, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, `时间格式应为本地时间：${e.at}`);
-  const returnLeg = v.legs.find((l) => l.date === '2026-09-27');
-  assert.ok(returnLeg && returnLeg.hours > 0, '归程那天必须有车程数据，否则算不出建议出发时间');
+  const returnLeg = v.events.find((e) => e.kind === 'dropoff');
+  assert.ok(returnLeg, '必须有还车事件');
   assert.ok(v.departureBufferMin > 0);
+});
+
+check('车程数据只有一处来源，且归程那天必须有', () => {
+  const trip = JSON.parse(read('data/trip.json'));
+  const byDate = Object.fromEntries(trip.days.map((d) => [d.date, d]));
+  assert.equal(byDate['2026-09-26'].driveHours, 7.5, '9.26 根河→齐齐哈尔 用户核实为 7 小时多，按 7.5 计');
+  assert.equal(byDate['2026-09-27'].driveHours, 3.5, '9.27 齐齐哈尔→机场 3–3.5 小时');
+  assert.equal(byDate['2026-09-19'].driveHours, 3, '9.19 机场→齐齐哈尔 约 3 小时');
+  for (const d of trip.days) {
+    if (d.driveHours != null) assert.ok(d.driveHours > 0 && d.driveHours < 20, `${d.date} 车程数值不合理：${d.driveHours}`);
+  }
+  // 车程不能再重复存在于 vehicle.legs，否则两处数据会打架
+  const legs = trip.meta.vehicle.legs || [];
+  assert.equal(legs.length, 0, 'vehicle.legs 已废弃，车程统一放在 days[].driveHours');
 });
 
 const pass = results.filter(Boolean).length;

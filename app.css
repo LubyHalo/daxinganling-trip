@@ -135,6 +135,7 @@ h3.note-day { font-size: .95rem; color: var(--ink-2); margin: 18px 4px 8px; font
 .d-collapsed { padding: 8px 14px 12px; color: var(--ink-2); font-size: .86rem; }
 .route { font-weight: 600; margin-bottom: 8px; }
 .route .ar { color: var(--brand-2); }
+.route .drive { margin-left: 8px; font-size: .78rem; font-weight: 500; color: var(--accent); }
 .empty-line { color: var(--ink-2); font-size: .9rem; padding: 4px 0 8px; }
 
 /* ---------- 站点 ---------- */

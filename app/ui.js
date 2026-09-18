@@ -105,17 +105,23 @@ const minToHHMM = (mins) => {
  */
 function buildVehicleFor(date) {
   const v = state.trip.meta.vehicle;
-  if (!v) return null;
+  const day = state.trip.days.find((d) => d.date === date) || null;
+  if (!v || !day) return null;
+
   const events = (v.events || [])
     .filter((e) => String(e.at).slice(0, 10) === date)
     .map((e) => ({ ...e, time: String(e.at).slice(11, 16) }));
-  const leg = (v.legs || []).find((l) => l.date === date) || null;
-  if (!events.length && !leg) return null;
+  // 车程只有一处来源：那个 day 自己的 driveHours / driveNote
+  const driveHours = day.driveHours || null;
+  const driveNote = day.driveNote || null;
+  const route = day.route || [];
+  const fromCity = route[0] || null;
+  const toCity = route.length > 1 ? route[route.length - 1] : null;
+  if (!events.length && !driveHours) return null;
 
   const pickup = events.find((e) => e.kind === 'pickup') || null;
   const dropoff = events.find((e) => e.kind === 'dropoff') || null;
   const prep = pickup ? (v.prep || []) : [];
-  const driveHours = leg && leg.hours ? leg.hours : null;
 
   let arrivalTime = null;
   if (pickup && driveHours) {
@@ -141,15 +147,16 @@ function buildVehicleFor(date) {
   if (dropoff && flight) {
     const dropMin = HHMMtoMin(dropoff.time);
     const buf = v.departureBufferMin == null ? 30 : v.departureBufferMin;
-    const leaveMin = dropMin - (driveHours || 3.5) * 60 - buf;
+    const hours = driveHours || 3.5;
+    const leaveMin = dropMin - hours * 60 - buf;
     const depMin = HHMMtoMin(flight.dep);
     const slack = depMin - dropMin;
     returnPlan = {
       leaveBy: minToHHMM(leaveMin),
-      from: leg ? leg.from : '齐齐哈尔',
+      from: fromCity || '出发地',
       steps: [
-        { label: `从${leg ? leg.from : '齐齐哈尔'}出发`, time: minToHHMM(leaveMin),
-          note: `按 ${driveHours || 3.5} 小时车程 + ${buf} 分钟缓冲估算，请以实时导航为准` },
+        { label: `从${fromCity || '出发地'}出发`, time: minToHHMM(leaveMin),
+          note: `${driveNote || `约 ${hours} 小时车程`} + ${buf} 分钟缓冲，请以实时导航为准` },
         { label: dropoff.label, time: dropoff.time, place: dropoff.place, note: `${v.vendor} · ${v.model}` },
         { label: `起飞 ${flight.no}`, time: flight.dep, place: `→ ${flight.to}`,
           note: `还车后仍有约 ${Math.floor(slack / 60)} 小时 ${pad2(slack % 60)} 分缓冲` },
@@ -157,7 +164,11 @@ function buildVehicleFor(date) {
     };
   }
 
-  return { vendor: v.vendor, order: v.order, model: v.model, events, leg, prep, arrivalTime, countdown, returnPlan, hasDropoff: Boolean(dropoff) };
+  return {
+    vendor: v.vendor, order: v.order, model: v.model, events,
+    driveHours, driveNote, arrivalCity: toCity, arrivalTime,
+    prep, countdown, returnPlan, hasDropoff: Boolean(dropoff),
+  };
 }
 
 function customsFor(date) {

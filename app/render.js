@@ -87,8 +87,10 @@ export function vehicleBlock(day) {
       <span class="veh-p">${esc(e.place || '')}</span>
     </div>`).join('');
   const bits = [];
-  if (v.leg && v.leg.note) {
-    bits.push(`<div class="hint">${esc(v.leg.note)}${v.arrivalTime ? ` · 取车后预计 <b>${esc(v.arrivalTime)}</b> 抵达${esc(v.leg.to)}` : ''}</div>`);
+  if (v.driveNote) {
+    bits.push(`<div class="hint">${esc(v.driveNote)}${v.arrivalTime ? ` · 取车后预计 <b>${esc(v.arrivalTime)}</b> 抵达${esc(v.arrivalCity || '')}` : ''}</div>`);
+  } else if (v.arrivalTime) {
+    bits.push(`<div class="hint">取车后预计 <b>${esc(v.arrivalTime)}</b> 抵达${esc(v.arrivalCity || '')}</div>`);
   }
   const prep = v.prep && v.prep.length ? `<ul class="plain">${v.prep.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>` : '';
   return `<div class="vehicle">
@@ -151,7 +153,7 @@ export function dayCard(vm, day, opts = {}) {
     return `<article class="${cls.join(' ')}">${head}<div class="d-collapsed">${esc(day.route.join(' ⇢ '))}${day.stops.length ? ` · 已打卡 ${s}/${day.stops.length}` : ''}</div></article>`;
   }
   const body = [];
-  body.push(`<div class="route">${day.route.map(esc).join(' <span class="ar">⇢</span> ')}</div>`);
+  body.push(`<div class="route">${day.route.map(esc).join(' <span class="ar">⇢</span> ')}${day.driveHours ? `<span class="drive">车程约 ${esc(String(day.driveHours))} 小时</span>` : ''}</div>`);
   if (day.vehicle) body.push(vehicleBlock(day));
   if (day.vehicle && day.vehicle.returnPlan) body.push(returnPlanBlock(day.vehicle.returnPlan));
   if (day.stops.length) body.push(`<ul class="stops">${day.stops.map((s) => stopLi(vm, s, day)).join('')}</ul>`);
