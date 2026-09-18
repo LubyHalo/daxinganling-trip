@@ -97,12 +97,14 @@ vt = await bootAt('2026-09-27T10:00:00');
 await check('归程日：自驾到机场还车，按车程倒推出发时间（不再是公共交估算）', () => {
   const t = text(vt.window);
   assert.match(t, /FU6718/, '应显示回程航班号');
-  assert.match(t, /18:50/);
+  assert.match(t, /18:30/);
   assert.match(t, /还车/, '应显示还车步骤');
   assert.match(t, /15:30/, '应显示 15:30 还车');
   assert.match(t, /归程时刻表/, '应显示归程时刻表');
   assert.match(t, /建议 11:30 前从齐齐哈尔出发/, '15:30 还车 − 3.5 小时车程 − 30 分缓冲 = 11:30');
+  assert.match(t, /还车后仍有约 3 小时 00 分缓冲/, '18:30 起飞 − 15:30 还车 = 3 小时');
   assert.ok(!/14:50/.test(t), '不应再出现按公共交通假设算出的 14:50（回归测试）');
+  assert.ok(!/18:50/.test(t), '起飞时间已修正为 18:30，不应再出现 OCR 误读的 18:50（回归测试）');
   assert.match(t, /今天 · 9月27日 周日/);
 });
 
