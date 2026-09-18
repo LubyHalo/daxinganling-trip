@@ -6,7 +6,8 @@
     "end": "2026-09-27",
     "party": ["我", "同行人"],
     "flights": [
-      { "date": "2026-09-19", "no": "FU6717", "from": "舟山", "to": "哈尔滨", "dep": "10:00", "arr": null, "price": 1420, "ticketed": true },
+      { "date": "2026-09-19", "no": "FU6717", "from": "舟山", "to": "哈尔滨", "dep": "10:00", "arr": null, "price": 1420, "ticketed": true,
+        "leaveByBufferHours": 2.5, "leaveByNote": "按 2.5 小时提前量估算（家到舟山机场约 20 分钟）" },
       { "date": "2026-09-27", "no": "FU6718", "from": "哈尔滨", "to": "舟山", "dep": "18:30", "arr": null, "price": 1680, "ticketed": true }
     ],
     "vehicle": {

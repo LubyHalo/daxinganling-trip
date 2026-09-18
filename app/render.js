@@ -120,7 +120,11 @@ function flightCard(f) {
   rows.push(`<div class="fl-no">${esc(f.no)} <span class="muted">${esc(f.from)} → ${esc(f.to)}</span></div>`);
   rows.push(`<div class="fl-time">${esc(f.dateLabel)} ${esc(f.dep)} 起飞</div>`);
   if (f.countdown) rows.push(`<div class="fl-cd">${f.countdown}</div>`);
-  if (f.leaveBy) rows.push(`<div class="fl-warn">建议 <b>${esc(f.leaveBy.hhmm)}</b> 前从${esc(f.fromCity)}出发（含约 4 小时城际转场与机场提前量，估算值）</div>`);
+  if (f.leaveBy) {
+    rows.push(f.leaveBy.passed
+      ? `<div class="fl-warn">建议 ${esc(f.leaveBy.hhmm)} 前从${esc(f.fromCity)}出发的时间已过——确认已经在路上</div>`
+      : `<div class="fl-warn">建议 <b>${esc(f.leaveBy.hhmm)}</b> 前从${esc(f.fromCity)}出发（${esc(f.leaveBy.note)}）</div>`);
+  }
   return `<div class="card flight">${rows.join('')}</div>`;
 }
 

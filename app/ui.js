@@ -230,11 +230,20 @@ function buildViewModel() {
       } else {
         card.countdown = '航班已起飞';
       }
-      const lb = latestDeparture(f.dep, 4, f.date);
+      const bufHours = f.leaveByBufferHours == null ? 4 : f.leaveByBufferHours;
+      const lb = latestDeparture(f.dep, bufHours, f.date);
       // 归程那天真正的约束是「还车时间」，不是通用转场时间——那时由归程时刻表负责提示
       const hasDropoff = ((trip.meta.vehicle && trip.meta.vehicle.events) || [])
         .some((e) => e.kind === 'dropoff' && String(e.at).slice(0, 10) === f.date);
-      if (lb && !hasDropoff) card.leaveBy = { ...lb, fromCity: f.from };
+      if (lb && !hasDropoff) {
+        const leaveTs = new Date(`${f.date}T${lb.hhmm}:00`).getTime();
+        card.leaveBy = {
+          ...lb,
+          fromCity: f.from,
+          note: f.leaveByNote || `含约 ${bufHours} 小时转场与机场提前量，估算值`,
+          passed: leaveTs < Date.now(),
+        };
+      }
     } else {
       card.countdown = `还有 ${daysBetween(state.today, f.date)} 天`;
     }
