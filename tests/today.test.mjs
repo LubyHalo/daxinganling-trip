@@ -49,26 +49,33 @@ const $ = (window, sel) => window.document.querySelector(sel);
 
 /* ---- 出发前一天（2026-09-18）---- */
 let vt = await bootAt('2026-09-18T12:00:00');
-await check('出发前一天：显示倒计时、航班卡片与第一天预览', () => {
+await check('出发前一天：显示倒计时、航班卡片与第一天预览（含取车信息）', () => {
   const t = text(vt.window);
   assert.match(t, /距出发还有/, '应显示距出发倒计时');
   assert.match(t, /FU6717/, '应显示去程航班');
   assert.match(t, /还有 1 天/, '航班卡片应显示还有 1 天');
   assert.match(t, /DAY 1/, '应预览第一天');
   assert.match(t, /美希酒店/);
+  assert.match(t, /15:30/, '预览第一天时应能看到 15:30 取车');
+  assert.match(t, /预计 18:30 抵达齐齐哈尔/);
 });
 
 /* ---- 出发日（2026-09-19 08:00）---- */
 vt = await bootAt('2026-09-19T08:00:00');
-await check('出发日：今天视图锁定 DAY 1，并给出出发时间倒推', () => {
+await check('出发日：今天视图锁定 DAY 1，并给出航班与取车倒推', () => {
   const t = text(vt.window);
   assert.match(t, /今天 · 9月19日 周六/, '应显示今天标题');
   assert.match(t, /FU6717/);
   assert.match(t, /距 10:00 起飞还有 2 小时 0 分钟/, '倒计时应精确到分钟');
   assert.match(t, /06:00/, '应给出建议出发时间（10:00 起飞的 4 小时倒推）');
+  assert.match(t, /距取车还有 7 小时 30 分钟/, '应显示距取车倒计时（08:00 → 15:30）');
+  assert.match(t, /哈尔滨太平机场服务点/, '应显示取车地点');
+  assert.match(t, /神州租车/, '应显示租车公司');
   const card = $(vt.window, '.day.is-today');
   assert.ok(card, '今天的日程卡应有 is-today 标记');
   assert.match(card.textContent, /米家烤肉/, '今天应显示当天的餐厅');
+  assert.match(card.textContent, /预计 18:30 抵达齐齐哈尔/, '取车 15:30 + 3 小时车程应算出抵达时间');
+  assert.match(card.textContent, /身份认证/, '取车日应提醒提前完成认证');
 });
 
 /* ---- 途中（2026-09-21）---- */
@@ -87,21 +94,24 @@ await check('途中：显示当天行程，且带出"从别的日子推迟过来
 
 /* ---- 归程日（2026-09-27 10:00）---- */
 vt = await bootAt('2026-09-27T10:00:00');
-await check('归程日：显示回程航班与"建议 14:50 前离开"', () => {
+await check('归程日：自驾到机场还车，按车程倒推出发时间（不再是公共交估算）', () => {
   const t = text(vt.window);
-  assert.match(t, /FU6718/);
+  assert.match(t, /FU6718/, '应显示回程航班号');
   assert.match(t, /18:50/);
-  assert.match(t, /14:50/, '应由 18:50 倒推 4 小时');
-  assert.match(t, /建议/, '必须标明这是建议/估算');
+  assert.match(t, /还车/, '应显示还车步骤');
+  assert.match(t, /15:30/, '应显示 15:30 还车');
+  assert.match(t, /归程时刻表/, '应显示归程时刻表');
+  assert.match(t, /建议 11:30 前从齐齐哈尔出发/, '15:30 还车 − 3.5 小时车程 − 30 分缓冲 = 11:30');
+  assert.ok(!/14:50/.test(t), '不应再出现按公共交通假设算出的 14:50（回归测试）');
   assert.match(t, /今天 · 9月27日 周日/);
 });
 
 /* ---- 结束后（2026-09-28）---- */
 vt = await bootAt('2026-09-28T10:00:00');
-await check('行程结束后：提示已结束，不再显示航班倒计时', () => {
+await check('行程结束后：提示已结束，不再显示航班卡片', () => {
   const t = text(vt.window);
   assert.match(t, /行程已结束/);
-  assert.ok(!/FU6718/.test(t), '结束后不应再显示航班卡片');
+  assert.equal($(vt.window, '.card.flight'), null, '结束后不应再渲染航班卡片');
 });
 
 globalThis.Date = REAL_DATE;

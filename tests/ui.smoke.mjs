@@ -36,6 +36,15 @@ globalThis.fetch = async (url) => {
 };
 
 const tick = () => new Promise((r) => setTimeout(r, 8));
+// 异步动作（gzip 打包、写剪贴板、读文件）不能靠"猜一个等待时间"，必须轮询到条件成立
+async function waitFor(predicate, ms = 2000) {
+  const t0 = Date.now();
+  for (;;) {
+    try { if (predicate()) return true; } catch { /* 条件自身可能暂时抛错 */ }
+    if (Date.now() - t0 > ms) return false;
+    await tick();
+  }
+}
 const $ = (sel) => window.document.querySelector(sel);
 const $$ = (sel) => [...window.document.querySelectorAll(sel)];
 async function click(target) {
@@ -168,7 +177,7 @@ step('自定义点：加一个餐厅', async () => {
 step('导出：本地记录不进入导出数据，且待同步归零', async () => {
   await click('[data-act="sync"]');
   await click('[data-act="export-file"]');
-  assert.ok(blobs.length >= 1, '应生成导出文件');
+  assert.ok(await waitFor(() => blobs.length >= 1), '应生成导出文件');
   const envelope = JSON.parse(await blobs[0].text());
   assert.equal(envelope.trip, 'daxinganling-2026-09');
   assert.ok(envelope.records.length > 0);
@@ -181,10 +190,13 @@ step('导出：本地记录不进入导出数据，且待同步归零', async ()
 step('同步码：复制出的文本可被解析回同样内容', async () => {
   await click('[data-act="sync"]');
   await click('[data-act="copy-code"]');
-  assert.ok(clipboard.length > 20, '剪贴板应有同步码');
+  const got = await waitFor(() => clipboard.length > 20);
+  assert.ok(got, `剪贴板应有同步码（2 秒内没等到；当前长度 ${clipboard.length}）`);
   assert.match(clipboard, /^(DGZ1:|DJ1:)/);
   const env = await core.decodeCode(clipboard);
-  assert.equal(env.records.length, JSON.parse(await blobs[0].text()).records.length);
+  const exported = JSON.parse(await blobs[0].text());
+  assert.equal(env.records.length, exported.records.length,
+    `剪贴板 ${env.records.length} 条 vs 导出文件 ${exported.records.length} 条`);
 });
 
 step('导入：合并同伴的新记录并更新较旧版本', async () => {
@@ -203,8 +215,8 @@ step('导入：合并同伴的新记录并更新较旧版本', async () => {
   await click('[data-act="sync"]');
   setInput('code', code);
   await click('[data-act="import-code"]');
+  assert.ok(await waitFor(() => records().some((r) => r.id === 'note:from-other')), '同伴的手记应被导入');
   const merged = records();
-  assert.ok(merged.some((r) => r.id === 'note:from-other'), '同伴的手记应被导入');
   const check = merged.find((r) => r.id === localCheck.id);
   assert.equal(check.payload.actual, '07:40', '较新的版本应覆盖本机版本');
   assert.ok(merged.some((r) => r.kind === 'status' && r.scope === 'local'), '导入绝不能删掉本机的 local 记录');

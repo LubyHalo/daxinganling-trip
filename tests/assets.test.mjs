@@ -86,6 +86,18 @@ check('行程数据基本结构完整', () => {
   assert.ok(trip.meta.openQuestions.length >= 5);
 });
 
+check('租车信息结构完整（归程时刻表依赖它）', () => {
+  const v = JSON.parse(read('data/trip.json')).meta.vehicle;
+  assert.ok(v, 'meta.vehicle 必须存在');
+  assert.equal(v.events.length, 2);
+  const kinds = v.events.map((e) => e.kind).join(',');
+  assert.equal(kinds, 'pickup,dropoff');
+  for (const e of v.events) assert.match(e.at, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, `时间格式应为本地时间：${e.at}`);
+  const returnLeg = v.legs.find((l) => l.date === '2026-09-27');
+  assert.ok(returnLeg && returnLeg.hours > 0, '归程那天必须有车程数据，否则算不出建议出发时间');
+  assert.ok(v.departureBufferMin > 0);
+});
+
 const pass = results.filter(Boolean).length;
 console.log(`\n资产测试：${pass} 通过 / ${results.length - pass} 失败`);
 process.exit(pass === results.length ? 0 : 1);

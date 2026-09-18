@@ -40,11 +40,16 @@ export function updateBanner() {
 
 export function viewToday(vm) {
   const parts = [];
-  if (vm.phase === 'before') parts.push(countdownCard(`距出发还有 <b>${vm.daysToStart}</b> 天`, `${vm.trip.meta.start} 舟山起飞`, '天气、防火证、租车信息别忘确认'));
-  if (vm.phase === 'after') parts.push(countdownCard('行程已结束', '把路上的手记导出留个纪念', ''));
-  for (const f of vm.flightCards) parts.push(flightCard(f));
-
   const today = vm.todayDay;
+  if (vm.phase === 'before') parts.push(countdownCard(`距出发还有 <b>${vm.daysToStart}</b> 天`, `${vm.trip.meta.start} 舟山起飞`, '天气、防火证、租车认证别忘确认'));
+  if (vm.phase === 'after') parts.push(countdownCard('行程已结束', '把路上的手记导出留个纪念', ''));
+  if (today && today.vehicle && today.vehicle.countdown) parts.push(vehicleHero(today.vehicle));
+  for (const f of vm.flightCards) {
+    // 归程那天由「归程时刻表」负责提示，避免和航班卡片重复
+    if (today && today.vehicle && today.vehicle.returnPlan && f.date === today.date) continue;
+    parts.push(flightCard(f));
+  }
+
   if (today) {
     parts.push(`<h2 class="sec">今天 · ${esc(vm.todayLabel)}</h2>`);
     parts.push(dayCard(vm, today, { expanded: true }));
@@ -64,6 +69,46 @@ export function viewToday(vm) {
     parts.push(`<div class="card">${todos.map((t) => todoRow(t)).join('')}</div>`);
   }
   return parts.join('');
+}
+
+function vehicleHero(v) {
+  const line = v.events.map((e) => `${e.label} ${e.time}${e.place ? ` · ${e.place}` : ''}`).join('　');
+  return `<div class="card hero"><div class="hero-t">${esc(v.countdown)}</div><div class="hero-s">${esc(line)}</div><div class="hero-f">${esc(v.vendor)} ${esc(v.model)}</div></div>`;
+}
+
+/* ---------------- 租车与归程时刻表 ---------------- */
+
+export function vehicleBlock(day) {
+  const v = day.vehicle;
+  if (!v) return '';
+  const rows = v.events.map((e) => `<div class="veh-row">
+      <span class="veh-t">${esc(e.time)}</span>
+      <span class="veh-l">${esc(e.label)}</span>
+      <span class="veh-p">${esc(e.place || '')}</span>
+    </div>`).join('');
+  const bits = [];
+  if (v.leg && v.leg.note) {
+    bits.push(`<div class="hint">${esc(v.leg.note)}${v.arrivalTime ? ` · 取车后预计 <b>${esc(v.arrivalTime)}</b> 抵达${esc(v.leg.to)}` : ''}</div>`);
+  }
+  const prep = v.prep && v.prep.length ? `<ul class="plain">${v.prep.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>` : '';
+  return `<div class="vehicle">
+    <div class="blk-t">租车 · ${esc(v.vendor)} · ${esc(v.model)}</div>
+    ${rows}${bits.join('')}${prep}
+  </div>`;
+}
+
+export function returnPlanBlock(plan) {
+  if (!plan) return '';
+  const steps = plan.steps.map((s) => `<li>
+      <span class="tl-t">${esc(s.time)}</span>
+      <span class="tl-l">${esc(s.label)}${s.place ? ` · ${esc(s.place)}` : ''}</span>
+      ${s.note ? `<span class="tl-n">${esc(s.note)}</span>` : ''}
+    </li>`).join('');
+  return `<div class="return-plan">
+    <div class="blk-t">归程时刻表（估算）</div>
+    <ol class="tl">${steps}</ol>
+    <div class="hint strong">建议 <b>${esc(plan.leaveBy)}</b> 前从${esc(plan.from)}出发——这是按车程倒推的估算值，请以实时导航为准。</div>
+  </div>`;
 }
 
 function countdownCard(title, sub, foot) {
@@ -103,6 +148,8 @@ export function dayCard(vm, day, opts = {}) {
   }
   const body = [];
   body.push(`<div class="route">${day.route.map(esc).join(' <span class="ar">⇢</span> ')}</div>`);
+  if (day.vehicle) body.push(vehicleBlock(day));
+  if (day.vehicle && day.vehicle.returnPlan) body.push(returnPlanBlock(day.vehicle.returnPlan));
   if (day.stops.length) body.push(`<ul class="stops">${day.stops.map((s) => stopLi(vm, s, day)).join('')}</ul>`);
   else body.push(`<div class="empty-line">这天没有安排景点</div>`);
   if (day.stay) {
@@ -275,6 +322,11 @@ export function sheetSettings(vm) {
   return `<h3>设置</h3>
     <div class="sheet-sub">${esc(vm.trip.meta.title)}</div>
     <div class="sync-block"><div class="blk-t">离线缓存</div><div class="hint">${offline}</div></div>
+    ${vm.trip.meta.vehicle ? `<div class="sync-block"><div class="blk-t">租车信息</div><ul class="plain">
+      <li>${esc(vm.trip.meta.vehicle.vendor)} · ${esc(vm.trip.meta.vehicle.model)}</li>
+      <li>订单号 ${esc(vm.trip.meta.vehicle.order)}</li>
+      ${vm.trip.meta.vehicle.events.map((e) => `<li>${esc(String(e.at).slice(0, 10))} ${esc(String(e.at).slice(11, 16))} ${esc(e.label)} · ${esc(e.place)}</li>`).join('')}
+    </ul></div>` : ''}
     <div class="field"><label>配色</label>
       <div class="seg">
         <button class="seg-b ${vm.theme === 'auto' ? 'on' : ''}" data-act="set-theme" data-v="auto">跟随系统</button>

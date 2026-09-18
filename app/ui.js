@@ -4,7 +4,7 @@
 import {
   checkId, overrideId, statusId, noteId, customId, newUuid,
   makeRecord, mergeRecords, buildEnvelope, encodeCode, decodeCode, validateEnvelope,
-  indexById, getAll, stopState, pendingCount,
+  indexById, getAll, stopState, pendingCount, pad2,
   SCOPE_LOCAL, SCOPE_SHARED, DEFAULT_SCOPE,
   todayISO, shiftISODate, daysBetween, formatCN, nowHHMM, latestDeparture,
 } from './core.js';
@@ -85,6 +85,81 @@ function effStop(stop, day) {
   };
 }
 
+/* ---------- 租车 / 归程时刻表 ---------- */
+
+const HHMMtoMin = (hhmm) => {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || ''));
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+};
+
+const minToHHMM = (mins) => {
+  const m = ((Math.round(mins) % 1440) + 1440) % 1440;
+  return `${pad2(Math.floor(m / 60))}:${pad2(m % 60)}`;
+};
+
+/**
+ * 把那一天的租车事件算成可直接渲染的东西：
+ * 取车/还车时间地点、取车日的预计抵达时间、当天的事件倒计时、以及归程日的时刻表。
+ * 归程"建议出发时间"用 还车时间 − 车程 − 缓冲 推算——之前按公共交通假设给出的
+ * 14:50 是错的，自驾还车才是真正的约束。
+ */
+function buildVehicleFor(date) {
+  const v = state.trip.meta.vehicle;
+  if (!v) return null;
+  const events = (v.events || [])
+    .filter((e) => String(e.at).slice(0, 10) === date)
+    .map((e) => ({ ...e, time: String(e.at).slice(11, 16) }));
+  const leg = (v.legs || []).find((l) => l.date === date) || null;
+  if (!events.length && !leg) return null;
+
+  const pickup = events.find((e) => e.kind === 'pickup') || null;
+  const dropoff = events.find((e) => e.kind === 'dropoff') || null;
+  const prep = pickup ? (v.prep || []) : [];
+  const driveHours = leg && leg.hours ? leg.hours : null;
+
+  let arrivalTime = null;
+  if (pickup && driveHours) {
+    const start = HHMMtoMin(pickup.time);
+    if (start !== null) arrivalTime = minToHHMM(start + driveHours * 60);
+  }
+
+  let countdown = null;
+  if (state.today === date && events.length) {
+    const next = events
+      .map((e) => ({ e, diff: Math.round((new Date(e.at).getTime() - Date.now()) / 60000) }))
+      .find((x) => x.diff > 0);
+    if (next) {
+      const h = Math.floor(next.diff / 60);
+      countdown = `距${next.e.label}还有 ${h > 0 ? `${h} 小时 ` : ''}${next.diff % 60} 分钟`;
+    } else {
+      countdown = `${events[events.length - 1].label}时间已到`;
+    }
+  }
+
+  let returnPlan = null;
+  const flight = (state.trip.meta.flights || []).find((f) => f.date === date);
+  if (dropoff && flight) {
+    const dropMin = HHMMtoMin(dropoff.time);
+    const buf = v.departureBufferMin == null ? 30 : v.departureBufferMin;
+    const leaveMin = dropMin - (driveHours || 3.5) * 60 - buf;
+    const depMin = HHMMtoMin(flight.dep);
+    const slack = depMin - dropMin;
+    returnPlan = {
+      leaveBy: minToHHMM(leaveMin),
+      from: leg ? leg.from : '齐齐哈尔',
+      steps: [
+        { label: `从${leg ? leg.from : '齐齐哈尔'}出发`, time: minToHHMM(leaveMin),
+          note: `按 ${driveHours || 3.5} 小时车程 + ${buf} 分钟缓冲估算，请以实时导航为准` },
+        { label: dropoff.label, time: dropoff.time, place: dropoff.place, note: `${v.vendor} · ${v.model}` },
+        { label: `起飞 ${flight.no}`, time: flight.dep, place: `→ ${flight.to}`,
+          note: `还车后仍有约 ${Math.floor(slack / 60)} 小时 ${pad2(slack % 60)} 分缓冲` },
+      ],
+    };
+  }
+
+  return { vendor: v.vendor, order: v.order, model: v.model, events, leg, prep, arrivalTime, countdown, returnPlan, hasDropoff: Boolean(dropoff) };
+}
+
 function customsFor(date) {
   return state.records
     .filter((r) => r.kind === 'custom' && !r.deleted && r.payload && r.payload.day === date)
@@ -121,6 +196,7 @@ function buildViewModel() {
       dateLabel: dateLabelOf(d.date),
       isToday: d.date === state.today,
       stops: all,
+      vehicle: buildVehicleFor(d.date),
       todos: (d.todos || []).map((text, i) => {
         const id = checkId(`${d.n}-todo-${i + 1}`);
         const r = getAll(state.index, id);
@@ -155,7 +231,10 @@ function buildViewModel() {
         card.countdown = '航班已起飞';
       }
       const lb = latestDeparture(f.dep, 4, f.date);
-      if (lb) card.leaveBy = { ...lb, fromCity: f.from };
+      // 归程那天真正的约束是「还车时间」，不是通用转场时间——那时由归程时刻表负责提示
+      const hasDropoff = ((trip.meta.vehicle && trip.meta.vehicle.events) || [])
+        .some((e) => e.kind === 'dropoff' && String(e.at).slice(0, 10) === f.date);
+      if (lb && !hasDropoff) card.leaveBy = { ...lb, fromCity: f.from };
     } else {
       card.countdown = `还有 ${daysBetween(state.today, f.date)} 天`;
     }

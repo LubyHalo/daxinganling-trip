@@ -194,6 +194,25 @@ h3.note-day { font-size: .95rem; color: var(--ink-2); margin: 18px 4px 8px; font
 
 .carried { padding: 8px 14px 0; font-size: .78rem; color: var(--accent); }
 
+/* ---------- 租车与归程时刻表 ---------- */
+
+.vehicle { margin: 10px 0; padding: 10px 12px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); }
+.veh-row { display: grid; grid-template-columns: auto auto 1fr; gap: 4px 10px; align-items: baseline; padding: 3px 0; }
+.veh-t { font-weight: 700; font-variant-numeric: tabular-nums; }
+.veh-l { font-weight: 600; }
+.veh-p { color: var(--ink-2); font-size: .86rem; }
+.vehicle ul.plain { margin-top: 6px; }
+.vehicle ul.plain li { font-size: .86rem; }
+
+.return-plan { margin: 10px 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--accent); background: rgba(169, 100, 15, .07); }
+.tl { list-style: none; margin: 6px 0 0; padding: 0; }
+.tl li { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; padding: 6px 0; border-top: 1px dashed var(--line); }
+.tl li:first-child { border-top: 0; }
+.tl-t { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+.tl-l { font-weight: 600; }
+.tl-n { grid-column: 2; font-size: .82rem; color: var(--ink-2); }
+.hint.strong { color: var(--warn); font-weight: 600; margin-top: 8px; }
+
 /* ---------- 手记 ---------- */
 
 .notes-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
