@@ -1,0 +1,19 @@
+{
+  "name": "daxinganling-trip",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "大兴安岭 9 日自驾 · 离线优先的行程助手（PWA）",
+  "scripts": {
+    "test": "node tests/core.test.mjs && node tests/assets.test.mjs && node tests/today.test.mjs && node tests/ui.smoke.mjs",
+    "test:core": "node tests/core.test.mjs",
+    "test:assets": "node tests/assets.test.mjs",
+    "test:today": "node tests/today.test.mjs",
+    "test:ui": "node tests/ui.smoke.mjs",
+    "icons": "node tools/make-icons.mjs",
+    "serve": "node tools/serve.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0"
+  }
+}

@@ -573,7 +573,14 @@ function bindEvents() {
       case 'scope-note': toggleNoteScope(el.dataset.id); break;
       case 'del-note': softDelete(el.dataset.id, '手记已删除'); break;
       case 'add-custom': state.sheet = { kind: 'custom', ctx: { date: el.dataset.date } }; state.customType = 'food'; render(); break;
-      case 'pick-type': state.customType = el.dataset.v; renderSheet(viewModel()); break;
+      case 'pick-type': {
+        // 只切换选中态，绝不重绘弹层——否则用户已经输入的名称会被清掉
+        state.customType = el.dataset.v;
+        for (const b of document.querySelectorAll('#sheet .seg-b')) {
+          b.classList.toggle('on', b.dataset.v === state.customType);
+        }
+        break;
+      }
       case 'save-custom': {
         const f = sheetFields();
         if (!f('name')) { toast('名称不能为空'); return; }
