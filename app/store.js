@@ -6,6 +6,7 @@ import { newUuid, toISODate } from './core.js';
 
 const K_RECORDS = 'dtrip.records.v1';
 const K_META = 'dtrip.meta.v1';
+const K_WEATHER = 'dtrip.weather.v1';
 
 export const storageStatus = { ok: true, reason: '' };
 
@@ -70,6 +71,25 @@ export function saveMeta(meta) {
 
 export function exportFilename(prefix = 'trip-sync') {
   return `${prefix}-${toISODate()}.json`;
+}
+
+/** 天气缓存：只存"日期 → 天气"，加上抓取时间；抓取失败时保留旧数据 */
+export function loadWeather() {
+  const raw = safeGet(K_WEATHER);
+  if (!raw) return { fetchedAt: 0, byDate: {} };
+  try {
+    const w = JSON.parse(raw);
+    return {
+      fetchedAt: Number(w && w.fetchedAt) || 0,
+      byDate: (w && w.byDate && typeof w.byDate === 'object') ? w.byDate : {},
+    };
+  } catch {
+    return { fetchedAt: 0, byDate: {} };
+  }
+}
+
+export function saveWeather(weather) {
+  return safeSet(K_WEATHER, JSON.stringify(weather));
 }
 
 /** 危险操作：清空全部本地数据（界面上必须二次确认） */

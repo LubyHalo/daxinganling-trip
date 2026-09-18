@@ -335,6 +335,25 @@ h3.note-day { font-size: .95rem; color: var(--ink-2); margin: 18px 4px 8px; font
 .tip-t { font-weight: 600; margin-bottom: 3px; }
 .tip-x { font-size: .88rem; color: var(--ink-2); }
 
+/* ================= 天气 ================= */
+
+.wx { padding: 12px 14px; }
+.wx-top { display: flex; align-items: center; gap: 12px; }
+.wx-icon { font-size: 1.9rem; line-height: 1; }
+.wx-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.wx-main b { font-size: 1.02rem; }
+.wx-sub { font-size: .78rem; color: var(--ink-2); }
+.wx-top .mini { flex: 0 0 auto; }
+.wx-alert {
+  margin-top: 10px; padding: 8px 10px; border-radius: 8px; font-size: .86rem;
+  background: rgba(169, 100, 15, .09); border-left: 4px solid var(--accent);
+}
+.wx-next { margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--line); font-size: .88rem; color: var(--ink-2); }
+.wx-line { display: flex; align-items: center; gap: 7px; font-size: .88rem; color: var(--ink-2); margin: 4px 0 8px; }
+.wx-line .wx-i { font-size: 1.05rem; }
+.wx-inline-alert { font-size: .82rem; color: var(--warn); margin: -2px 0 8px; }
+html[data-mode="album"] .wx-alert { background: rgba(176, 120, 28, .12); }
+
 /* ================= 使用手册 ================= */
 
 .help-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }

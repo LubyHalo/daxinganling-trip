@@ -51,6 +51,7 @@ export function viewToday(vm) {
     if (today && today.vehicle && today.vehicle.returnPlan && f.date === today.date) continue;
     parts.push(flightCard(f));
   }
+  if (vm.phase !== 'after') parts.push(weatherCard(vm));
 
   if (today) {
     parts.push(`<h2 class="sec">今天 · ${esc(vm.todayLabel)}</h2>`);
@@ -76,6 +77,29 @@ export function viewToday(vm) {
 function vehicleHero(v) {
   const line = v.events.map((e) => `${e.label} ${e.time}${e.place ? ` · ${e.place}` : ''}`).join('　');
   return `<div class="card hero"><div class="hero-t">${esc(v.countdown)}</div><div class="hero-s">${esc(line)}</div><div class="hero-f">${esc(v.vendor)} ${esc(v.model)}</div></div>`;
+}
+
+/* ---------------- 天气 ---------------- */
+
+export function weatherCard(vm) {
+  const w = vm.weatherToday;
+  const btn = `<button class="mini" data-act="refresh-weather">${vm.weatherLoading ? '更新中…' : '更新'}</button>`;
+  const head = `<div class="wx-top">
+      <span class="wx-icon">${w ? esc(w.icon) : '🌤️'}</span>
+      <span class="wx-main">
+        <b>${w ? `${esc(w.label)}${vm.weatherTodayLine ? `　${esc(vm.weatherTodayLine)}` : ''}` : '天气还没获取'}</b>
+        <span class="wx-sub">${w && w.place ? `${esc(w.place)} · ` : ''}${esc(vm.weatherStamp)}</span>
+      </span>
+      ${btn}
+    </div>`;
+  const alerts = (vm.weatherTodayAlerts || []).map((a) => `<div class="wx-alert">⚠ ${esc(a)}</div>`).join('');
+  const tomorrow = vm.weatherTomorrow
+    ? `<div class="wx-next">明天　${esc(vm.weatherTomorrow.icon)} ${esc(vm.weatherTomorrow.label)}${vm.weatherTomorrowSummary ? ` · ${esc(vm.weatherTomorrowSummary)}` : ''}</div>`
+    : '';
+  const hint = !w
+    ? '<div class="hint">天气需要联网才能获取，断网时看到的是上次联网的数据。</div>'
+    : (vm.weatherStale ? `<div class="hint">${vm.weatherLoading ? '正在更新…' : '数据可能已过时，有网时点「更新」。'}</div>` : '');
+  return `<div class="card wx">${head}${alerts}${tomorrow}${hint}</div>`;
 }
 
 /* ---------------- 租车与归程时刻表 ---------------- */
@@ -158,6 +182,10 @@ export function dayCard(vm, day, opts = {}) {  const open = opts.expanded || vm.
   body.push(`<div class="route">${day.route.map(esc).join(' <span class="ar">⇢</span> ')}${day.driveHours ? `<span class="drive">车程约 ${esc(String(day.driveHours))} 小时</span>` : ''}</div>`);
   if (day.vehicle) body.push(vehicleBlock(day));
   if (day.vehicle && day.vehicle.returnPlan) body.push(returnPlanBlock(day.vehicle.returnPlan));
+  if (day.weather) {
+    body.push(`<div class="wx-line"><span class="wx-i">${esc(day.weather.icon)}</span>${esc(day.weather.label)}${day.weatherSummary ? ` · ${esc(day.weatherSummary)}` : ''}</div>`);
+    if (day.weatherAlerts.length) body.push(`<div class="wx-inline-alert">⚠ ${day.weatherAlerts.map(esc).join('；')}</div>`);
+  }
   if (day.stops.length) body.push(`<ul class="stops">${day.stops.map((s) => stopLi(vm, s, day)).join('')}</ul>`);
   else body.push(`<div class="empty-line">这天没有安排景点</div>`);
   if (day.stay) {

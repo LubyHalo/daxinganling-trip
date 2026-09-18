@@ -8,9 +8,10 @@ import {
   SCOPE_LOCAL, SCOPE_SHARED, DEFAULT_SCOPE,
   todayISO, shiftISODate, daysBetween, formatCN, nowHHMM, latestDeparture,
 } from './core.js';
-import { loadRecords, saveRecords, loadMeta, saveMeta, storageStatus, exportFilename, clearAll } from './store.js';
+import { loadRecords, saveRecords, loadMeta, saveMeta, storageStatus, exportFilename, clearAll, loadWeather, saveWeather } from './store.js';
 import * as R from './render.js';
 import * as album from './album.js';
+import * as WX from './weather.js';
 
 const TRIP_URL = 'data/trip.json';
 
@@ -31,6 +32,8 @@ const state = {
   swWaiting: null,
   lastAction: null,
   toastTimer: null,
+  weather: { fetchedAt: 0, byDate: {} },
+  weatherLoading: false,
 };
 
 /* ---------------- 启动 ---------------- */
@@ -40,6 +43,7 @@ export async function boot() {
   state.theme = state.meta.theme;
   state.mode = state.meta.mode || 'quick';
   state.records = loadRecords();
+  state.weather = loadWeather();
 
   try {
     const res = await fetch(TRIP_URL, { cache: 'no-cache' });
@@ -60,6 +64,7 @@ export async function boot() {
   bindEvents();
   registerSW();
   render();
+  refreshWeatherIfNeeded();
   // 跨零点时自动换天
   setInterval(() => {
     const t = todayISO();
@@ -196,6 +201,8 @@ function customsFor(date) {
 function buildViewModel() {
   state.index = indexById(state.records);
   const trip = state.trip;
+  const wx = state.weather || { fetchedAt: 0, byDate: {} };
+  const weatherOf = (date) => wx.byDate[date] || null;
   const days = trip.days.map((d) => {
     const base = d.stops.map((s) => effStop(s, d));
     const all = [...base, ...customsFor(d.date)];
@@ -214,6 +221,9 @@ function buildViewModel() {
       isToday: d.date === state.today,
       stops: all,
       vehicle: buildVehicleFor(d.date),
+      weather: weatherOf(d.date),
+      weatherAlerts: WX.weatherAlerts(weatherOf(d.date)),
+      weatherSummary: WX.summaryLine(weatherOf(d.date)),
       todos: (d.todos || []).map((text, i) => {
         const id = checkId(`${d.n}-todo-${i + 1}`);
         const r = getAll(state.index, id);
@@ -305,6 +315,15 @@ function buildViewModel() {
     mode: state.mode,
     segment: state.segment,
     query: state.query,
+    weatherToday: weatherOf(state.today),
+    weatherTodayLine: WX.summaryLine(weatherOf(state.today)),
+    weatherTodayAlerts: WX.weatherAlerts(weatherOf(state.today)),
+    weatherTomorrow: weatherOf(shiftISODate(state.today, 1)),
+    weatherTomorrowSummary: WX.summaryLine(weatherOf(shiftISODate(state.today, 1))),
+    weatherStamp: WX.ageText(wx.fetchedAt),
+    weatherStale: WX.staleHours(wx.fetchedAt) >= WX.STALE_HOURS,
+    weatherLoading: state.weatherLoading,
+    weatherHasAny: Object.keys(wx.byDate).length > 0,
     url: typeof location !== 'undefined' ? `${location.origin}${location.pathname}` : '',
     todayLabel: formatCN(state.today),
     daysToStart: daysBetween(state.today, trip.meta.start),
@@ -606,6 +625,52 @@ function toast(msg, withUndo = false) {
   state.toastTimer = setTimeout(() => { el.classList.remove('show'); el.hidden = true; }, withUndo ? 5000 : 2200);
 }
 
+/* ---------------- 天气 ---------------- */
+
+function weatherPlaces() {
+  return state.trip.days
+    .filter((d) => d.geo && typeof d.geo.lat === 'number' && typeof d.geo.lon === 'number')
+    .map((d) => ({ date: d.date, name: d.geo.name, lat: d.geo.lat, lon: d.geo.lon }));
+}
+
+/**
+ * 天气是唯一需要联网的功能，所以每条分支都必须失败安全：
+ * 没网、API 挂了、返回格式变了 —— 一律保留旧数据，其它功能照常用。
+ */
+async function refreshWeatherIfNeeded(force = false) {
+  if (state.weatherLoading) return;
+  const places = weatherPlaces();
+  if (!places.length) return;
+
+  if (!state.online) {
+    if (force) toast('现在没网。天气只在联网时更新，其它功能不受影响');
+    return;
+  }
+  if (!force) {
+    const fresh = WX.staleHours(state.weather.fetchedAt) < WX.STALE_HOURS;
+    const missing = WX.missingDates(state.weather.byDate, places.map((p) => p.date));
+    if (fresh && !missing.length) return;
+  }
+
+  state.weatherLoading = true;
+  render();
+  try {
+    const { byDate } = await WX.fetchWeather(places);
+    if (Object.keys(byDate).length) {
+      state.weather = { fetchedAt: Date.now(), byDate: { ...state.weather.byDate, ...byDate } };
+      saveWeather(state.weather);
+      if (force) toast('天气已更新');
+    } else if (force) {
+      toast('天气服务没有返回数据，稍后再试');
+    }
+  } catch (err) {
+    if (force) toast(`天气更新失败：${err.message}（旧数据仍可看）`);
+  } finally {
+    state.weatherLoading = false;
+    render();
+  }
+}
+
 /* ---------------- 主题 / SW ---------------- */
 
 function applyTheme() {
@@ -774,6 +839,7 @@ function bindEvents() {
       }
       case 'todo': toggleTodo(el.dataset.id); break;
       case 'sync': state.sheet = { kind: 'sync', ctx: {} }; render(); break;
+      case 'refresh-weather': await refreshWeatherIfNeeded(true); break;
       case 'help': state.sheet = null; state.view = 'help'; render(); window.scrollTo({ top: 0 }); break;
       case 'copy-link': {
         const url = `${location.origin}${location.pathname}`;
@@ -830,7 +896,7 @@ function bindEvents() {
     if (list) list.innerHTML = R.indexList(buildViewModel());
   });
 
-  window.addEventListener('online', () => { state.online = true; render(); });
+  window.addEventListener('online', () => { state.online = true; render(); refreshWeatherIfNeeded(); });
   window.addEventListener('offline', () => { state.online = false; render(); });
 
   const mq = window.matchMedia('(prefers-color-scheme: dark)');

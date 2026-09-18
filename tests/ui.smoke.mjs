@@ -36,9 +36,35 @@ for (const k of ['window', 'document', 'navigator', 'location', 'localStorage', 
 // Node 的 URL 没有 createObjectURL，补上；Blob 用 Node 自带的（有 .text()）
 globalThis.URL.createObjectURL = (blob) => { blobs.push(blob); return 'blob:mock'; };
 globalThis.URL.revokeObjectURL = () => {};
+// 天气 API 的假件：9 个地点各给一种天气代码，用来验证"每天取自己那个地点"的关联
+const DAY_LIST = Array.from({ length: 16 }, (_, i) => {
+  const d = new Date();
+  d.setDate(d.getDate() + i);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+});
+const WX_CODES = [0, 1, 2, 3, 45, 61, 63, 71, 75];
+let weatherFails = false;
+const CANNED_WEATHER = WX_CODES.map((code) => ({
+  daily: {
+    time: DAY_LIST,
+    weather_code: DAY_LIST.map(() => code),
+    temperature_2m_max: DAY_LIST.map(() => 12.5),
+    temperature_2m_min: DAY_LIST.map(() => 1.4),
+    precipitation_probability_max: DAY_LIST.map(() => 70),
+    wind_speed_10m_max: DAY_LIST.map(() => 45),
+    sunrise: DAY_LIST.map(() => '2026-09-18T05:30'),
+    sunset: DAY_LIST.map(() => '2026-09-18T18:00'),
+  },
+}));
+
 globalThis.fetch = async (url) => {
-  if (String(url).includes('trip.json')) {
+  const u = String(url);
+  if (u.includes('trip.json')) {
     return { ok: true, status: 200, json: async () => JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'trip.json'), 'utf8')) };
+  }
+  if (u.includes('api.open-meteo.com')) {
+    if (weatherFails) return { ok: false, status: 500, json: async () => ({}) };
+    return { ok: true, status: 200, json: async () => CANNED_WEATHER };
   }
   return { ok: false, status: 404, json: async () => ({}) };
 };
@@ -351,6 +377,41 @@ step('使用手册：从设置进入，内容齐全且能复制链接', async ()
   assert.ok(await waitFor(() => clipboard.startsWith('http')), '应能复制应用链接');
   await click('[data-act="tab"][data-view="today"]');
   assert.equal(state.view, 'today', '「回到今天」应能离开手册');
+});
+
+step('天气：联网时自动抓取，今日卡片与逐日行程都显示，且每天都对到自己的地点', async () => {
+  assert.ok(await waitFor(() => {
+    const c = $('.card.wx');
+    return Boolean(c && c.textContent.includes('晴'));
+  }), '启动后应自动取到天气并显示');
+  const wx = $('.card.wx').textContent;
+  assert.match(wx, /1°~13°/, '应显示温度区间（四舍五入：1.4→1，12.5→13）');
+  assert.match(wx, /降水 70%/);
+  assert.match(wx, /风 45 km\/h/);
+  assert.match(wx, /⚠/, '应有出行提醒');
+  assert.match(wx, /齐齐哈尔/, '应标明天气对应的地点');
+
+  await click('#tabbar [data-view="days"]');
+  await click('[data-act="toggle-day"][data-date="2026-09-24"]');
+  const line = $('#day-2026-09-24 .wx-line');
+  assert.ok(line, '展开的那天应有天气行');
+  assert.match(line.textContent, /小雨/, '9.24 在奇乾，应显示奇乾那天的天气（回归测试：不能被最后一个地点覆盖）');
+  await click('[data-act="toggle-day"][data-date="2026-09-24"]');
+  await click('#tabbar [data-view="today"]');
+  assert.equal(state.view, 'today');
+});
+
+step('天气更新失败：保留旧数据、给出提示，不影响其它功能', async () => {
+  await click('#tabbar [data-view="today"]');
+  if (!$('#sheet').hidden) await click('[data-act="close-sheet"]');
+  const before = window.localStorage.getItem('dtrip.weather.v1');
+  assert.ok(before, '此前应已写入天气缓存');
+  weatherFails = true;
+  await click('[data-act="refresh-weather"]');
+  assert.ok(await waitFor(() => $('#toast').textContent.includes('天气更新失败')), '应提示更新失败');
+  assert.equal(window.localStorage.getItem('dtrip.weather.v1'), before, '失败时不能写坏缓存');
+  assert.match($('.card.wx').textContent, /晴/, '旧数据继续显示，应用不受影响');
+  weatherFails = false;
 });
 
 step('主题切换与设置页', async () => {

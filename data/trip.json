@@ -38,6 +38,7 @@
       "title": "落地日 · 哈尔滨 → 齐齐哈尔",
       "route": ["哈尔滨", "齐齐哈尔"],
       "distanceKm": null,
+      "geo": { "name": "齐齐哈尔", "lat": 47.3392, "lon": 123.9615 },
       "driveHours": 3,
       "driveNote": "取车后自驾，约 3 小时车程（约 3–3.5 小时，以导航为准）",
       "stops": [
@@ -56,6 +57,7 @@
       "title": "转场日 · 齐齐哈尔 → 海拉尔",
       "route": ["齐齐哈尔", "海拉尔"],
       "distanceKm": null,
+      "geo": { "name": "海拉尔", "lat": 49.2114, "lon": 119.7558 },
       "stops": [
         { "id": "d2-s1", "name": "办防火证", "type": "activity", "time": null, "note": null, "tips": null, "retired": false }
       ],
@@ -75,6 +77,7 @@
       "title": "曲水与湿地 · 海拉尔 → 黑山头",
       "route": ["海拉尔", "莫尔格勒河", "额尔古纳国家湿地公园", "列夫湿地庄园", "黑山头"],
       "distanceKm": null,
+      "geo": { "name": "黑山头（额尔古纳）", "lat": 50.2136, "lon": 119.5711 },
       "stops": [
         { "id": "d3-s1", "name": "莫尔格勒河", "type": "sight", "time": null, "note": null, "tips": null, "retired": false },
         { "id": "d3-s2", "name": "额尔古纳国家湿地公园", "type": "sight", "time": null, "note": null, "tips": null, "retired": false },
@@ -97,6 +100,7 @@
       "title": "沿边卡线 · 黑山头 → 恩和",
       "route": ["黑山头", "186 彩带河", "5卡", "7卡", "恩和"],
       "distanceKm": null,
+      "geo": { "name": "恩和", "lat": 50.8206, "lon": 119.9093 },
       "stops": [
         { "id": "d4-s1", "name": "滑草", "type": "activity", "time": null, "note": null, "tips": null, "retired": false },
         { "id": "d4-s2", "name": "186 彩带河", "type": "sight", "time": null, "note": null, "tips": null, "retired": false },
@@ -118,6 +122,7 @@
       "title": "林区小环线 · 恩和 → 莫尔道嘎",
       "route": ["恩和", "7卡", "9卡", "奥洛契庄园", "老鹰嘴", "太平林场", "莫尔道嘎"],
       "distanceKm": null,
+      "geo": { "name": "莫尔道嘎", "lat": 51.2657, "lon": 120.7716 },
       "stops": [
         { "id": "d5-s1", "name": "7卡", "type": "transit", "time": null, "note": null, "tips": null, "retired": false },
         { "id": "d5-s2", "name": "9卡", "type": "transit", "time": null, "note": null, "tips": null, "retired": false },
@@ -139,6 +144,7 @@
       "title": "边境秘境 · 莫尔道嘎 → 奇乾",
       "route": ["莫尔道嘎", "根白公路", "白鹿岛", "奇乾"],
       "distanceKm": null,
+      "geo": { "name": "奇乾", "lat": 52.1861, "lon": 120.7598 },
       "stops": [
         { "id": "d6-s1", "name": "根白公路", "type": "sight", "time": null, "note": null, "tips": null, "retired": false },
         { "id": "d6-s2", "name": "白鹿岛", "type": "sight", "time": null, "note": null, "tips": null, "retired": false }
@@ -159,6 +165,7 @@
       "title": "林海与驯鹿 · 奇乾 → 根河",
       "route": ["奇乾", "伊克萨玛公园", "阿尤莎驯鹿部落", "满归", "根河"],
       "distanceKm": null,
+      "geo": { "name": "根河", "lat": 50.7812, "lon": 121.5252 },
       "stops": [
         { "id": "d7-s1", "name": "伊克萨玛公园", "type": "sight", "time": null, "note": null, "tips": null, "retired": false },
         { "id": "d7-s2", "name": "阿尤莎驯鹿部落", "type": "activity", "time": null, "note": null, "tips": null, "retired": false },
@@ -180,6 +187,7 @@
       "title": "长途赶路 · 根河 → 齐齐哈尔",
       "route": ["根河", "齐齐哈尔"],
       "distanceKm": null,
+      "geo": { "name": "齐齐哈尔", "lat": 47.3392, "lon": 123.9615 },
       "driveHours": 7.5,
       "driveNote": "地图实测约 7 小时多，按 7.5 小时计；林区加油站少，在大城镇加满",
       "stops": [],
@@ -197,6 +205,7 @@
       "title": "归程 · 齐齐哈尔 → 哈尔滨 → 舟山",
       "route": ["齐齐哈尔", "哈尔滨", "舟山"],
       "distanceKm": null,
+      "geo": { "name": "哈尔滨（太平机场）", "lat": 45.6234, "lon": 126.2503 },
       "driveHours": 3.5,
       "driveNote": "齐齐哈尔 → 哈尔滨太平机场，约 3–3.5 小时（含进出城）",
       "stops": [],

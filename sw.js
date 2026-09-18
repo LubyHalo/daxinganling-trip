@@ -16,6 +16,7 @@ const ASSETS = [
   './app/store.js',
   './app/album.js',
   './app/manual.js',
+  './app/weather.js',
   './data/trip.json',
   './manifest.webmanifest',
   './icons/icon-192.png',
