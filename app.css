@@ -108,6 +108,9 @@ h3.note-day { font-size: .95rem; color: var(--ink-2); margin: 18px 4px 8px; font
   overflow: hidden;
 }
 .card.empty { padding: 18px; color: var(--ink-2); font-size: .95rem; }
+/* 行列表卡片：行组件（待办/手记/站点/贴士）自己不带左右内边距，
+   统一由容器给出，否则放进裸卡片里文字就会贴边。 */
+.card.rows { padding: 4px 14px 8px; }
 .card.hero { padding: 18px; background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; border: 0; }
 .hero-t { font-size: 1.4rem; font-weight: 700; }
 .hero-s { opacity: .92; margin-top: 4px; }
@@ -145,7 +148,7 @@ h3.note-day { font-size: .95rem; color: var(--ink-2); margin: 18px 4px 8px; font
 .stop:first-child { border-top: 0; }
 .stop-main {
   flex: 1; display: grid; grid-template-columns: 26px 1fr; align-items: baseline; gap: 2px 8px;
-  padding: 11px 4px; background: none; border: 0; color: inherit; font: inherit; text-align: left; min-height: 46px;
+  padding: 11px 0; background: none; border: 0; color: inherit; font: inherit; text-align: left; min-height: 46px;
 }
 .stop-main .ic { font-size: 1.05rem; }
 .stop-main .nm { font-weight: 600; }
@@ -184,8 +187,8 @@ h3.note-day { font-size: .95rem; color: var(--ink-2); margin: 18px 4px 8px; font
 .blk-t { font-size: .76rem; color: var(--ink-2); letter-spacing: .04em; margin-bottom: 4px; }
 /* 待办行：文字占满剩余宽度，日期固定不伸缩。
    注意不要把 flex:1 加在 .todo 的所有 span 上——那样日期也会跟着抢宽度，
-   长待办会被挤成一堆换行。 */
-.todo { display: flex; align-items: flex-start; gap: 10px; padding: 10px 2px; font-size: .95rem; }
+   长待办会被挤成一堆换行。左右内边距由容器（.card.rows / .day-body / .ix-row）提供。 */
+.todo { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; font-size: .95rem; }
 .todo input { flex: none; width: 20px; height: 20px; margin-top: 3px; accent-color: var(--brand); }
 .todo .todo-text { flex: 1 1 auto; min-width: 0; }
 .todo .todo-date { flex: 0 0 auto; white-space: nowrap; font-size: .76rem; color: var(--ink-2); margin-top: 4px; letter-spacing: .02em; }
@@ -197,7 +200,7 @@ h3.note-day { font-size: .95rem; color: var(--ink-2); margin: 18px 4px 8px; font
 .intel li, ul.plain li { margin-bottom: 6px; color: var(--ink-2); }
 .day-foot { display: flex; gap: 8px; margin-top: 12px; }
 
-.carried { padding: 8px 14px 0; font-size: .78rem; color: var(--accent); }
+.carried { padding: 8px 0 0; font-size: .78rem; color: var(--accent); }
 
 /* ---------- 租车与归程时刻表 ---------- */
 
@@ -230,7 +233,7 @@ h3.note-day { font-size: .95rem; color: var(--ink-2); margin: 18px 4px 8px; font
 .btn.danger { color: var(--warn); border-color: var(--warn); background: transparent; }
 .btn:active { filter: brightness(.94); }
 
-.note { padding: 12px 2px; border-top: 1px solid var(--line); }
+.note { padding: 12px 0; border-top: 1px solid var(--line); }
 .note:first-child { border-top: 0; }
 .n-head { display: flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--ink-2); }
 .n-text { margin: 6px 0; white-space: pre-wrap; }
@@ -327,7 +330,7 @@ h3.note-day { font-size: .95rem; color: var(--ink-2); margin: 18px 4px 8px; font
 .tip-row { padding: 12px; }
 .tip-row .ix-sub { line-height: 1.55; }
 
-.tip { padding: 12px 2px; border-top: 1px solid var(--line); }
+.tip { padding: 12px 0; border-top: 1px solid var(--line); }
 .tip:first-child { border-top: 0; }
 .tip-t { font-weight: 600; margin-bottom: 3px; }
 .tip-x { font-size: .88rem; color: var(--ink-2); }
@@ -376,8 +379,11 @@ html[data-mode="album"] .d-title, html[data-mode="album"] .day-title, html[data-
 html[data-mode="album"] h2.sec { font-size: 1.16rem; }
 html[data-mode="album"] .day-head { background: transparent; }
 html[data-mode="album"] .card.hero { background: linear-gradient(135deg, #2f5d3c, #3f7f85); }
+/* 天数水印：只在画册模式使用。基础规则显式关掉，避免元素以默认样式裸奔显示
+   （渲染层也已经只在画册模式下输出这个元素，这里是第二道保险）。 */
+.ghost { display: none; }
 html[data-mode="album"] .ghost {
-  position: absolute; top: 6px; right: 10px; z-index: 0;
+  display: block; position: absolute; top: 6px; right: 10px; z-index: 0;
   font-family: var(--serif); font-size: 3.6rem; font-weight: 700; line-height: 1;
   color: rgba(47, 93, 60, .07); pointer-events: none; user-select: none;
 }

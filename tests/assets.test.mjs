@@ -112,6 +112,30 @@ check('车程数据只有一处来源，且归程那天必须有', () => {
   assert.equal(legs.length, 0, 'vehicle.legs 已废弃，车程统一放在 days[].driveHours');
 });
 
+check('render.js 用到的 class 都有基础样式（防止元素以默认样式裸奔）', () => {
+  const src = read('app/render.js');
+  const css = read('app.css');
+  // 纯结构包装元素，本来就该没有样式
+  const ALLOW = new Set(['tb-left', 'stay-row', 'n-time', 'n-act']);
+  const classes = new Set();
+  for (const m of src.matchAll(/class="([^"]*)"/g)) {
+    for (const raw of m[1].split(/\s+/)) {
+      const c = raw.trim();
+      if (/^[a-z][a-z0-9-]*$/i.test(c)) classes.add(c);
+    }
+  }
+  assert.ok(classes.size > 40, `只解析出 ${classes.size} 个 class，解析逻辑可能失效了`);
+  const missing = [];
+  for (const c of classes) {
+    if (ALLOW.has(c)) continue;
+    // 只看非画册模式限定的规则行：只写在 html[data-mode="album"] 里的样式，
+    // 在速查模式下等于没有样式（ghost 就是这么裸奔出来的）
+    const ok = css.split(/\r?\n/).some((line) => new RegExp(`\\.${c}(?![\\w-])`).test(line) && !line.includes('data-mode="album"'));
+    if (!ok) missing.push(c);
+  }
+  assert.deepEqual(missing, [], `这些 class 没有基础样式，会以浏览器默认样式显示：${missing.join(', ')}`);
+});
+
 const pass = results.filter(Boolean).length;
 console.log(`\n资产测试：${pass} 通过 / ${results.length - pass} 失败`);
 process.exit(pass === results.length ? 0 : 1);

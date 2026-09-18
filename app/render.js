@@ -66,7 +66,7 @@ export function viewToday(vm) {
   const todos = vm.allTodos.filter((t) => !t.done);
   if (todos.length) {
     parts.push(`<h2 class="sec">还没办的事 <span class="muted">${todos.length}</span></h2>`);
-    parts.push(`<div class="card">${todos.map((t) => todoRow(t)).join('')}</div>`);
+    parts.push(`<div class="card rows">${todos.map((t) => todoRow(t)).join('')}</div>`);
   }
   return parts.join('');
 }
@@ -137,8 +137,7 @@ export function viewDays(vm) {
   <section class="river" id="river">${vm.days.map((d) => dayCard(vm, d, {})).join('')}</section>`;
 }
 
-export function dayCard(vm, day, opts = {}) {
-  const open = opts.expanded || vm.expanded.has(day.date);
+export function dayCard(vm, day, opts = {}) {  const open = opts.expanded || vm.expanded.has(day.date);
   const cls = ['card', 'day'];
   if (day.isToday) cls.push('is-today');
   if (opts.preview) cls.push('preview');
@@ -174,7 +173,7 @@ export function dayCard(vm, day, opts = {}) {
     body.push(`<details class="intel"><summary>情报 ${day.intel.length} 条</summary><ul>${day.intel.map((i) => `<li>${esc(i)}</li>`).join('')}</ul></details>`);
   }
   body.push(`<div class="day-foot"><button class="mini" data-act="add-custom" data-date="${esc(day.date)}">＋ 加一个点</button><button class="mini" data-act="add-note" data-date="${esc(day.date)}">✎ 记手记</button></div>`);
-  return `<article class="${cls.join(' ')}" id="day-${esc(day.date)}"><span class="ghost" aria-hidden="true">${String(day.n).padStart(2, '0')}</span>${head}<div class="day-body">${body.join('')}</div></article>`;
+  return `<article class="${cls.join(' ')}" id="day-${esc(day.date)}">${vm.mode === 'album' ? `<span class="ghost" aria-hidden="true">${String(day.n).padStart(2, '0')}</span>` : ''}${head}<div class="day-body">${body.join('')}</div></article>`;
 }
 
 function stopLi(vm, stop, day) {
@@ -203,7 +202,7 @@ function stopLi(vm, stop, day) {
 
 function stopRow(vm, stop, day, opts = {}) {
   const prefix = opts.carriedFrom ? `<div class="carried">来自 ${esc(vm.dateLabelOf(opts.carriedFrom.date))} · ${esc(opts.carriedFrom.title || '')}</div>` : '';
-  return `<div class="card">${prefix}<ul class="stops">${stopLi(vm, stop, day)}</ul></div>`;
+  return `<div class="card rows">${prefix}<ul class="stops">${stopLi(vm, stop, day)}</ul></div>`;
 }
 
 /** 9.20 这种短日期：待办列表里足够明确，又不抢文字的宽度 */
@@ -243,11 +242,11 @@ export function viewNotes(vm) {
   }
   for (const g of vm.noteGroups) {
     parts.push(`<h3 class="note-day">${esc(vm.dateLabelOf(g.day))}${g.day === vm.today ? ' · 今天' : ''}</h3>`);
-    parts.push(`<div class="card">${g.notes.map((n) => noteRow(vm, n)).join('')}</div>`);
+    parts.push(`<div class="card rows">${g.notes.map((n) => noteRow(vm, n)).join('')}</div>`);
   }
   if (vm.localScopedNotes.length) {
     parts.push(`<h3 class="note-day">只留在本机的手记</h3>`);
-    parts.push(`<div class="card">${vm.localScopedNotes.map((n) => noteRow(vm, n)).join('')}</div>`);
+    parts.push(`<div class="card rows">${vm.localScopedNotes.map((n) => noteRow(vm, n)).join('')}</div>`);
   }
   return parts.join('');
 }
@@ -365,7 +364,7 @@ export function indexList(vm) {
 
 export function viewTips(vm) {
   return `<h2 class="sec">出行贴士</h2>
-    <div class="card">${vm.trip.tips.map((t) => `<div class="tip"><div class="tip-t">${esc(t.title)}</div><div class="tip-x">${esc(t.text)}</div></div>`).join('')}</div>`;
+    <div class="card rows">${vm.trip.tips.map((t) => `<div class="tip"><div class="tip-t">${esc(t.title)}</div><div class="tip-x">${esc(t.text)}</div></div>`).join('')}</div>`;
 }
 
 /* ---------------- 底部弹层 ---------------- */

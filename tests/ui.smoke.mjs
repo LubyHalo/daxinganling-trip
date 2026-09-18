@@ -84,6 +84,14 @@ step('渲染：顶部栏与今日视图', () => {
   assert.match(view, /哈尔滨/, '第一天路线应含哈尔滨');
   assert.match(view, /美希酒店/, '第一天住宿应渲染出来');
   assert.equal($$('#tabbar button').length, 4);
+  assert.equal($('.ghost'), null, '速查模式不该输出天数水印；它在无样式时会以默认样式裸奔显示（回归测试）');
+});
+
+step('卡片内边距：行列表卡片带 rows 类，文字不贴边（回归测试）', () => {
+  const crossDayCard = $$('.card').find((c) => c.querySelector('.todo') && !c.closest('.day'));
+  assert.ok(crossDayCard, '应有跨天待办卡片');
+  assert.ok(crossDayCard.classList.contains('rows'), '「还没办的事」卡片需要 rows 类来提供左右内边距');
+  assert.ok($('.card.rows .todo'), 'rows 卡片里应有待办行');
 });
 
 step('待办排版：当天内不重复日期，跨天列表用短日期（回归测试）', () => {
@@ -253,6 +261,8 @@ step('手记视图：按天分组并显示导入的手记', async () => {
   const text = $('#view').textContent;
   assert.match(text, /同伴写的/);
   assert.match(text, /9月21日/, '应按天分组');
+  const noteCard = $$('.card').find((c) => c.querySelector('.note'));
+  assert.ok(noteCard && noteCard.classList.contains('rows'), '手记卡片也要带 rows 类，否则手记文字贴边');
 });
 
 step('删除 + 撤销：软删除后可以恢复', async () => {
