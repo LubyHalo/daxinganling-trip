@@ -35,6 +35,11 @@ globalThis.fetch = async (url) => {
   return { ok: false, status: 404, json: async () => ({}) };
 };
 
+// jsdom 里所有元素尺寸都是 0，画册模式的河流布局会提前退出。给一个手机大小的桩，
+// 好让布局与曲线计算真的跑一遍（这样"不报错"才是有意义的断言）。
+Object.defineProperty(window.Element.prototype, 'clientWidth', { get() { return 390; }, configurable: true });
+Object.defineProperty(window.Element.prototype, 'offsetHeight', { get() { return 4200; }, configurable: true });
+
 const tick = () => new Promise((r) => setTimeout(r, 8));
 // 异步动作（gzip 打包、写剪贴板、读文件）不能靠"猜一个等待时间"，必须轮询到条件成立
 async function waitFor(predicate, ms = 2000) {
@@ -78,7 +83,7 @@ step('渲染：顶部栏与今日视图', () => {
   assert.match(view, /DAY 1/);
   assert.match(view, /哈尔滨/, '第一天路线应含哈尔滨');
   assert.match(view, /美希酒店/, '第一天住宿应渲染出来');
-  assert.equal($$('#tabbar button').length, 3);
+  assert.equal($$('#tabbar button').length, 4);
 });
 
 step('打卡：产生确定性 id 的记录，并记录实际时间', async () => {
@@ -241,6 +246,58 @@ step('删除 + 撤销：软删除后可以恢复', async () => {
   await click('[data-act="undo"]');
   const back = records().find((r) => r.id === 'note:from-other');
   assert.equal(back.deleted, false, '撤销应恢复');
+});
+
+step('索引页：分类查看 → 搜索过滤 → 跳回当天', async () => {
+  await click('#tabbar [data-view="index"]');
+  const list = $('#index-list');
+  assert.ok(list, '索引页应有列表容器');
+  assert.match(list.textContent, /美希酒店/, '默认「全部」应列出住宿');
+  assert.match(list.textContent, /米家烤肉/, '默认「全部」应包含餐厅');
+  assert.match(list.textContent, /办防火证/, '默认「全部」应包含待办');
+
+  await click('[data-act="seg"][data-v="todo"]');
+  assert.match($('#index-list').textContent, /办防火证/);
+  assert.ok(!/美希酒店/.test($('#index-list').textContent), '切到待办后不应再出现住宿');
+
+  await click('[data-act="seg"][data-v="food"]');
+  assert.match($('#index-list').textContent, /米家烤肉/);
+  assert.ok(!/莫尔格勒河/.test($('#index-list').textContent), '美食分类里不应出现景点');
+
+  await click('[data-act="seg"][data-v="all"]');
+  const input = $('[data-input="query"]');
+  input.value = '美希';
+  input.dispatchEvent(new window.Event('input', { bubbles: true }));
+  await tick();
+  const filtered = $('#index-list').textContent;
+  assert.match(filtered, /美希酒店/);
+  assert.ok(!/米家烤肉/.test(filtered), '搜索应过滤掉不匹配项');
+  assert.equal($('[data-input="query"]').value, '美希', '输入过程中搜索框不能被重绘清空（回归测试）');
+
+  await click('[data-act="goto-day"]');
+  assert.equal(state.view, 'days', '「看当天」应切到行程页');
+  assert.ok($('#day-2026-09-19 .day-body'), '并展开那一天');
+});
+
+step('画册模式：行程页挂上河流时间轴，切回速查即卸载', async () => {
+  await click('[data-act="settings"]');
+  await click('[data-act="set-mode"][data-v="album"]');
+  assert.equal(window.document.documentElement.getAttribute('data-mode'), 'album');
+  const meta = JSON.parse(window.localStorage.getItem('dtrip.meta.v1'));
+  assert.equal(meta.mode, 'album', '显示模式应持久化');
+
+  await click('#tabbar [data-view="days"]');
+  assert.ok($('.river'), '行程页应有河流容器');
+  assert.ok($('.river-svg'), '画册模式应挂上 SVG 河流');
+  assert.equal($$('.river-dot').length, 9, '9 天应有 9 个节点');
+  assert.ok($('.river-path').getAttribute('d').startsWith('M '), '应生成曲线路径');
+  assert.ok($('.ghost'), '画册模式应显示天数水印');
+
+  await click('[data-act="settings"]');
+  await click('[data-act="set-mode"][data-v="quick"]');
+  await click('#tabbar [data-view="days"]');
+  assert.equal(window.document.documentElement.getAttribute('data-mode'), 'quick');
+  assert.equal($('.river-svg'), null, '速查模式不应挂河流（省性能）');
 });
 
 step('主题切换与设置页', async () => {

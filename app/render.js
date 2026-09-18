@@ -133,7 +133,8 @@ function flightCard(f) {
 /* ---------------- 逐日行程 ---------------- */
 
 export function viewDays(vm) {
-  return `<h2 class="sec">全程 ${vm.days.length} 天</h2>` + vm.days.map((d) => dayCard(vm, d, {})).join('');
+  return `<h2 class="sec">全程 ${vm.days.length} 天</h2>
+  <section class="river" id="river">${vm.days.map((d) => dayCard(vm, d, {})).join('')}</section>`;
 }
 
 export function dayCard(vm, day, opts = {}) {
@@ -150,7 +151,7 @@ export function dayCard(vm, day, opts = {}) {
     </button>`;
   if (!open) {
     const s = day.stops.filter((x) => x.state.done).length;
-    return `<article class="${cls.join(' ')}">${head}<div class="d-collapsed">${esc(day.route.join(' ⇢ '))}${day.stops.length ? ` · 已打卡 ${s}/${day.stops.length}` : ''}</div></article>`;
+    return `<article class="${cls.join(' ')}" id="day-${esc(day.date)}">${head}<div class="d-collapsed">${esc(day.route.join(' ⇢ '))}${day.stops.length ? ` · 已打卡 ${s}/${day.stops.length}` : ''}</div></article>`;
   }
   const body = [];
   body.push(`<div class="route">${day.route.map(esc).join(' <span class="ar">⇢</span> ')}${day.driveHours ? `<span class="drive">车程约 ${esc(String(day.driveHours))} 小时</span>` : ''}</div>`);
@@ -173,7 +174,7 @@ export function dayCard(vm, day, opts = {}) {
     body.push(`<details class="intel"><summary>情报 ${day.intel.length} 条</summary><ul>${day.intel.map((i) => `<li>${esc(i)}</li>`).join('')}</ul></details>`);
   }
   body.push(`<div class="day-foot"><button class="mini" data-act="add-custom" data-date="${esc(day.date)}">＋ 加一个点</button><button class="mini" data-act="add-note" data-date="${esc(day.date)}">✎ 记手记</button></div>`);
-  return `<article class="${cls.join(' ')}">${head}<div class="day-body">${body.join('')}</div></article>`;
+  return `<article class="${cls.join(' ')}" id="day-${esc(day.date)}"><span class="ghost" aria-hidden="true">${String(day.n).padStart(2, '0')}</span>${head}<div class="day-body">${body.join('')}</div></article>`;
 }
 
 function stopLi(vm, stop, day) {
@@ -251,6 +252,108 @@ function noteRow(vm, n) {
       <button class="mini danger" data-act="del-note" data-id="${esc(n.id)}">删</button>
     </div>
   </div>`;
+}
+
+/* ---------------- 索引（按类型随时查） ---------------- */
+
+const SEGMENTS = [
+  { id: 'all', label: '全部' },
+  { id: 'stay', label: '住宿' },
+  { id: 'food', label: '美食' },
+  { id: 'sight', label: '景点' },
+  { id: 'todo', label: '待办' },
+  { id: 'tips', label: '贴士' },
+];
+
+const inSightGroup = (type) => type === 'sight' || type === 'activity' || type === 'transit';
+
+function segCount(vm, id) {
+  if (id === 'stay') return vm.days.filter((d) => d.stay).length;
+  if (id === 'food') return vm.days.reduce((n, d) => n + d.stops.filter((s) => s.type === 'food').length, 0);
+  if (id === 'sight') return vm.days.reduce((n, d) => n + d.stops.filter((s) => inSightGroup(s.type)).length, 0);
+  if (id === 'todo') return vm.allTodos.length;
+  if (id === 'tips') return vm.trip.tips.length;
+  return 0;
+}
+
+export function viewIndex(vm) {
+  const chips = SEGMENTS.map((s) => `<button class="chip-b ${s.id === vm.segment ? 'on' : ''}" data-act="seg" data-v="${s.id}">${esc(s.label)}<span class="n">${segCount(vm, s.id)}</span></button>`).join('');
+  return `<div class="index-head">
+    <input class="search" type="search" data-input="query" value="${esc(vm.query || '')}" placeholder="搜住宿、餐厅、景点、待办…" autocomplete="off">
+    <div class="chips">${chips}</div>
+  </div>
+  <div id="index-list">${indexList(vm)}</div>`;
+}
+
+export function indexList(vm) {
+  const q = String(vm.query || '').trim().toLowerCase();
+  const seg = vm.segment || 'all';
+  const hit = (...parts) => !q || parts.filter(Boolean).join(' ').toLowerCase().includes(q);
+  const rows = [];
+
+  if (seg === 'all' || seg === 'stay') {
+    for (const day of vm.days) {
+      const st = day.stay;
+      if (!st || !hit(st.name, day.dateLabel, st.addr)) continue;
+      rows.push(`<li class="ix-row stay-row">
+        <div class="ix-main">
+          <span class="ix-nm">${esc(st.name)}</span>
+          <span class="ix-sub">${esc(day.dateLabel)} · 住 · ${esc(day.title || '')}</span>
+        </div>
+        <span class="ix-chips">
+          ${st.phone ? `<a class="tel" href="tel:${esc(st.phone)}">拨号</a>` : ''}
+          ${st.booked ? '<span class="chip ok">已订</span>' : '<span class="chip warn">未订</span>'}
+          <button class="mini" data-act="goto-day" data-date="${esc(day.date)}">看当天</button>
+        </span>
+      </li>`);
+    }
+  }
+
+  if (seg === 'all' || seg === 'food' || seg === 'sight') {
+    for (const day of vm.days) {
+      for (const stop of day.stops) {
+        const inSeg = seg === 'food' ? stop.type === 'food' : seg === 'sight' ? inSightGroup(stop.type) : true;
+        if (!inSeg) continue;
+        if (!hit(stop.name, day.dateLabel, stop.note)) continue;
+        const state = [];
+        if (stop.state.done) state.push('<span class="chip ok">已打卡</span>');
+        if (stop.state.skipped) state.push('<span class="chip warn">已跳过</span>');
+        if (stop.time) state.push(`<span class="chip">${esc(stop.time)}</span>`);
+        if (stop.isCustom) state.push('<span class="chip">我加的</span>');
+        rows.push(`<li class="ix-row">
+          <button class="ix-main" data-act="open-stop" data-id="${esc(stop.id)}" data-date="${esc(day.date)}">
+            <span class="ix-nm">${esc(TYPE_ICON[stop.type] || '•')} ${esc(stop.name)}</span>
+            <span class="ix-sub">${esc(day.dateLabel)} · ${esc(TYPE_LABEL[stop.type] || '')}${stop.note ? ` · ${esc(stop.note)}` : ''}</span>
+          </button>
+          <span class="ix-chips">${state.join('')}</span>
+        </li>`);
+      }
+    }
+  }
+
+  if (seg === 'all' || seg === 'todo') {
+    for (const t of vm.allTodos) {
+      if (!hit(t.text, t.dateLabel)) continue;
+      rows.push(`<li class="ix-row todo-row">${todoRow(t)}</li>`);
+    }
+  }
+
+  if (seg === 'all' || seg === 'tips') {
+    for (const tip of vm.trip.tips) {
+      if (!hit(tip.title, tip.text)) continue;
+      rows.push(`<li class="ix-row tip-row"><div class="ix-main"><span class="ix-nm">${esc(tip.title)}</span><span class="ix-sub">${esc(tip.text)}</span></div></li>`);
+    }
+  }
+
+  if (!rows.length) return `<div class="card empty">没有匹配的内容。换个词，或者点上面的分类看看。</div>`;
+  return `<ul class="ix-list">${rows.join('')}</ul>`;
+}
+
+/* ---------------- 贴士 ---------------- */
+
+export function viewTips(vm) {
+  return `<h2 class="sec">出行贴士</h2>
+    <div class="card">${vm.trip.tips.map((t) => `<div class="tip"><div class="tip-t">${esc(t.title)}</div><div class="tip-x">${esc(t.text)}</div></div>`).join('')}</div>`;
 }
 
 /* ---------------- 底部弹层 ---------------- */
@@ -333,6 +436,13 @@ export function sheetSettings(vm) {
       <li>订单号 ${esc(vm.trip.meta.vehicle.order)}</li>
       ${vm.trip.meta.vehicle.events.map((e) => `<li>${esc(String(e.at).slice(0, 10))} ${esc(String(e.at).slice(11, 16))} ${esc(e.label)} · ${esc(e.place)}</li>`).join('')}
     </ul></div>` : ''}
+    <div class="field"><label>显示模式</label>
+      <div class="seg">
+        <button class="seg-b ${vm.mode === 'quick' ? 'on' : ''}" data-act="set-mode" data-v="quick">路上速查</button>
+        <button class="seg-b ${vm.mode === 'album' ? 'on' : ''}" data-act="set-mode" data-v="album">旅行画册</button>
+      </div>
+      <div class="hint">速查模式：高对比大字号，车里好用。画册模式：纸质质感 + 河流时间轴，适合晚上回酒店翻看。两种模式看的是同一份数据。</div>
+    </div>
     <div class="field"><label>配色</label>
       <div class="seg">
         <button class="seg-b ${vm.theme === 'auto' ? 'on' : ''}" data-act="set-theme" data-v="auto">跟随系统</button>

@@ -55,6 +55,7 @@ export function loadMeta() {
     meta.deviceId = `dev-${newUuid().slice(0, 4)}`;
   }
   meta.theme = meta.theme || 'auto';
+  meta.mode = meta.mode || 'quick';
   meta.lastExportAt = meta.lastExportAt || 0;
   meta.lastImportAt = meta.lastImportAt || 0;
   meta.lastImportSummary = meta.lastImportSummary || null;

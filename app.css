@@ -237,7 +237,7 @@ h3.note-day { font-size: .95rem; color: var(--ink-2); margin: 18px 4px 8px; font
 
 #tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(4, 1fr);
   padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
   background: var(--card); border-top: 1px solid var(--line);
 }
@@ -293,3 +293,111 @@ h3.note-day { font-size: .95rem; color: var(--ink-2); margin: 18px 4px 8px; font
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 #toast .link { color: #9ff0c6; }
+
+/* ================= 索引页 ================= */
+
+.index-head { position: sticky; top: calc(56px + env(safe-area-inset-top)); z-index: 20; padding: 8px 0 6px; background: var(--bg); }
+.search {
+  width: 100%; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--card); color: var(--ink); font: inherit; font-size: 1rem;
+}
+.chips { display: flex; gap: 6px; overflow-x: auto; padding: 8px 0 2px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip-b {
+  flex: none; display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--card); color: var(--ink-2); font: inherit; font-size: .88rem;
+}
+.chip-b.on { background: var(--brand); border-color: var(--brand); color: var(--on-brand); font-weight: 700; }
+.chip-b .n { font-size: .74rem; opacity: .75; }
+
+.ix-list { list-style: none; margin: 0; padding: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.ix-row { display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 0; border-top: 1px solid var(--line); }
+.ix-row:first-child { border-top: 0; }
+.ix-main { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 11px 0 11px 12px; min-height: 48px; background: none; border: 0; color: inherit; font: inherit; text-align: left; }
+.ix-nm { font-weight: 600; }
+.ix-sub { font-size: .82rem; color: var(--ink-2); }
+.ix-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.todo-row { padding: 4px 12px; }
+.todo-row .todo { width: 100%; }
+.tip-row { padding: 12px; }
+.tip-row .ix-sub { line-height: 1.55; }
+
+.tip { padding: 12px 2px; border-top: 1px solid var(--line); }
+.tip:first-child { border-top: 0; }
+.tip-t { font-weight: 600; margin-bottom: 3px; }
+.tip-x { font-size: .88rem; color: var(--ink-2); }
+
+/* ================= 画册模式 ================= */
+
+html[data-mode="album"] {
+  --serif: 'Noto Serif SC', 'Songti SC', 'STSong', 'Source Han Serif SC', 'SimSun', serif;
+  --hand: 'Kaiti SC', 'KaiTi', 'STKaiti', serif;
+  --bg: #f5f0e2;
+  --card: #fcf9f0;
+  --card-2: #f2ead7;
+  --ink: #22301f;
+  --ink-2: #5f6b55;
+  --line: #ded4bd;
+  --brand: #2f5d3c;
+  --brand-2: #3f7f85;
+  --on-brand: #fdfbf4;
+  --accent: #b0781c;
+  --ok: #2f6b3f;
+  --warn: #9c4a2a;
+  --radius: 5px;
+  --shadow: 0 1px 0 rgba(34, 48, 31, .05), 0 12px 26px rgba(34, 48, 31, .07);
+}
+html[data-mode="album"][data-theme="dark"] {
+  --bg: #171c17;
+  --card: #1e251e;
+  --card-2: #232b22;
+  --ink: #ece6d7;
+  --ink-2: #a9a893;
+  --line: #38402f;
+  --brand: #6fa87f;
+  --brand-2: #7fb3b8;
+  --on-brand: #10180f;
+  --accent: #d9a95c;
+}
+html[data-mode="album"] body {
+  font-family: var(--serif);
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+html[data-mode="album"] #topbar { background: var(--card-2); color: var(--ink); border-bottom: 1px solid var(--line); }
+html[data-mode="album"] #topbar .tb-sub { color: var(--ink-2); }
+html[data-mode="album"] .ico { border-color: var(--line); background: transparent; color: var(--ink); }
+html[data-mode="album"] .card { box-shadow: var(--shadow); }
+html[data-mode="album"] .d-title, html[data-mode="album"] .day-title, html[data-mode="album"] h2.sec { font-family: var(--serif); letter-spacing: .04em; }
+html[data-mode="album"] h2.sec { font-size: 1.16rem; }
+html[data-mode="album"] .day-head { background: transparent; }
+html[data-mode="album"] .card.hero { background: linear-gradient(135deg, #2f5d3c, #3f7f85); }
+html[data-mode="album"] .ghost {
+  position: absolute; top: 6px; right: 10px; z-index: 0;
+  font-family: var(--serif); font-size: 3.6rem; font-weight: 700; line-height: 1;
+  color: rgba(47, 93, 60, .07); pointer-events: none; user-select: none;
+}
+html[data-mode="album"] .day { position: relative; overflow: hidden; }
+html[data-mode="album"] .stop-main .nm { font-family: var(--serif); }
+
+/* 河流时间轴：只在画册模式显示 */
+.river { position: relative; }
+.river-svg, .river-dots { display: none; }
+html[data-mode="album"] .river { padding-left: 0; }
+html[data-mode="album"] .river-svg {
+  display: block; position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; z-index: 0;
+}
+html[data-mode="album"] .river-svg .river-path { fill: none; stroke: var(--brand-2); stroke-width: 2; stroke-linecap: round; opacity: .55; }
+html[data-mode="album"] .river-svg .river-path-glow { fill: none; stroke: var(--brand-2); stroke-width: 9; stroke-linecap: round; opacity: .12; }
+html[data-mode="album"] .river-dots { display: block; position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+html[data-mode="album"] .river-dot {
+  position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%;
+  background: var(--card); border: 2px solid var(--brand-2); transition: transform .25s ease, background .25s ease;
+}
+html[data-mode="album"] .river-dot.active { background: var(--accent); border-color: var(--accent); transform: scale(1.5); }
+html[data-mode="album"] .river .day { position: relative; z-index: 2; margin-left: 58px; }
+@media (min-width: 880px) {
+  html[data-mode="album"] .river .day { margin-left: 0; }
+  html[data-mode="album"] .river .day:nth-of-type(even) { margin-right: 38%; }
+  html[data-mode="album"] .river .day:nth-of-type(odd) { margin-left: 38%; }
+}

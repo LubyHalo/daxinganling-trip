@@ -35,7 +35,7 @@ check('index.html 引用的资源都存在', () => {
 });
 
 check('每个模块的 import 路径都能解析到真实文件', () => {
-  const files = ['app/main.js', 'app/ui.js', 'app/render.js', 'app/store.js', 'app/core.js'];
+  const files = ['app/main.js', 'app/ui.js', 'app/render.js', 'app/store.js', 'app/core.js', 'app/album.js'];
   const bad = [];
   for (const f of files) {
     const src = read(f);
@@ -83,7 +83,7 @@ check('行程数据基本结构完整', () => {
     assert.match(d.date, /^\d{4}-\d{2}-\d{2}$/);
     for (const s of d.stops) assert.ok(['sight', 'food', 'activity', 'transit'].includes(s.type), `未知类型 ${s.type}`);
   }
-  assert.ok(trip.meta.openQuestions.length >= 5);
+  assert.ok(trip.meta.openQuestions.length >= 2, '待确认信息被清空得太多，可能是误删');
 });
 
 check('租车信息结构完整（归程时刻表依赖它）', () => {

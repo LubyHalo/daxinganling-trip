@@ -10,6 +10,7 @@ import {
 } from './core.js';
 import { loadRecords, saveRecords, loadMeta, saveMeta, storageStatus, exportFilename, clearAll } from './store.js';
 import * as R from './render.js';
+import * as album from './album.js';
 
 const TRIP_URL = 'data/trip.json';
 
@@ -18,9 +19,12 @@ const state = {
   records: [],
   meta: null,
   theme: 'auto',
+  mode: 'quick',
   online: navigator.onLine,
   today: todayISO(),
   view: 'today',
+  segment: 'all',
+  query: '',
   expanded: new Set(),
   sheet: null, // { kind, ctx }
   customType: 'food',
@@ -34,6 +38,7 @@ const state = {
 export async function boot() {
   state.meta = loadMeta();
   state.theme = state.meta.theme;
+  state.mode = state.meta.mode || 'quick';
   state.records = loadRecords();
 
   try {
@@ -51,6 +56,7 @@ export async function boot() {
   if (td) state.expanded.add(td.date);
 
   applyTheme();
+  applyMode();
   bindEvents();
   registerSW();
   render();
@@ -296,6 +302,9 @@ function buildViewModel() {
     records: state.records, meta: state.meta, theme: state.theme, online: state.online,
     today: state.today,
     offlineReady: state.offlineReady,
+    mode: state.mode,
+    segment: state.segment,
+    query: state.query,
     todayLabel: formatCN(state.today),
     daysToStart: daysBetween(state.today, trip.meta.start),
     expanded: state.expanded,
@@ -316,11 +325,24 @@ function render() {
   if (state.swWaiting) banners.push(R.updateBanner());
   document.getElementById('topbar').innerHTML = R.topbar(vm) + banners.join('');
   const view = document.getElementById('view');
-  view.innerHTML = state.view === 'today' ? R.viewToday(vm) : state.view === 'days' ? R.viewDays(vm) : R.viewNotes(vm);
+  view.innerHTML = state.view === 'today' ? R.viewToday(vm)
+    : state.view === 'days' ? R.viewDays(vm)
+      : state.view === 'index' ? R.viewIndex(vm)
+        : R.viewNotes(vm);
   for (const b of document.querySelectorAll('#tabbar button')) {
     b.classList.toggle('on', b.dataset.view === state.view);
   }
   renderSheet(vm);
+  mountAlbumExtras();
+}
+
+/** 画册模式的时间轴只在「行程」页挂，其它页安静卸载 */
+function mountAlbumExtras() {
+  if (state.mode !== 'album' || state.view !== 'days') {
+    album.unmountRiver();
+    return;
+  }
+  album.mountRiver(document.getElementById('view'));
 }
 
 function renderSheet(vm) {
@@ -600,6 +622,18 @@ function setTheme(v) {
   render();
 }
 
+function applyMode() {
+  document.documentElement.setAttribute('data-mode', state.mode === 'album' ? 'album' : 'quick');
+}
+
+function setMode(v) {
+  state.mode = v === 'album' ? 'album' : 'quick';
+  state.meta.mode = state.mode;
+  saveMeta(state.meta);
+  applyMode();
+  render();
+}
+
 function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   checkOfflineReady();
@@ -653,7 +687,33 @@ function bindEvents() {
     const ctx = state.sheet ? state.sheet.ctx : {};
 
     switch (act) {
-      case 'tab': state.view = el.dataset.view; render(); window.scrollTo({ top: 0 }); break;
+      case 'tab': {
+        state.view = el.dataset.view;
+        render();
+        window.scrollTo({ top: 0 });
+        break;
+      }
+      case 'seg': {
+        state.segment = el.dataset.v;
+        const list = document.getElementById('index-list');
+        if (list) {
+          // 只换列表，避免整页重绘带走搜索框里的内容与焦点
+          document.querySelectorAll('.chip-b').forEach((b) => b.classList.toggle('on', b.dataset.v === state.segment));
+          list.innerHTML = R.indexList(buildViewModel());
+        } else {
+          render();
+        }
+        break;
+      }
+      case 'goto-day': {
+        state.view = 'days';
+        state.expanded.add(el.dataset.date);
+        render();
+        const node = document.getElementById(`day-${el.dataset.date}`);
+        if (node && typeof node.scrollIntoView === 'function') node.scrollIntoView({ block: 'start' });
+        break;
+      }
+      case 'set-mode': setMode(el.dataset.v); break;
       case 'theme': setTheme(state.theme === 'auto' ? 'light' : state.theme === 'light' ? 'dark' : 'auto'); break;
       case 'toggle-day': {
         const d = el.dataset.date;
@@ -747,6 +807,15 @@ function bindEvents() {
   });
 
   for (const b of document.querySelectorAll('#tabbar button')) b.dataset.act = 'tab';
+
+  // 搜索框：只更新列表，不重建整页（否则输入框会失焦）
+  document.addEventListener('input', (e) => {
+    const el = e.target && e.target.closest ? e.target.closest('[data-input="query"]') : null;
+    if (!el) return;
+    state.query = el.value;
+    const list = document.getElementById('index-list');
+    if (list) list.innerHTML = R.indexList(buildViewModel());
+  });
 
   window.addEventListener('online', () => { state.online = true; render(); });
   window.addEventListener('offline', () => { state.online = false; render(); });
