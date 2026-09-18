@@ -305,6 +305,7 @@ function buildViewModel() {
     mode: state.mode,
     segment: state.segment,
     query: state.query,
+    url: typeof location !== 'undefined' ? `${location.origin}${location.pathname}` : '',
     todayLabel: formatCN(state.today),
     daysToStart: daysBetween(state.today, trip.meta.start),
     expanded: state.expanded,
@@ -328,7 +329,8 @@ function render() {
   view.innerHTML = state.view === 'today' ? R.viewToday(vm)
     : state.view === 'days' ? R.viewDays(vm)
       : state.view === 'index' ? R.viewIndex(vm)
-        : R.viewNotes(vm);
+        : state.view === 'help' ? R.viewHelp(vm)
+          : R.viewNotes(vm);
   for (const b of document.querySelectorAll('#tabbar button')) {
     b.classList.toggle('on', b.dataset.view === state.view);
   }
@@ -772,6 +774,17 @@ function bindEvents() {
       }
       case 'todo': toggleTodo(el.dataset.id); break;
       case 'sync': state.sheet = { kind: 'sync', ctx: {} }; render(); break;
+      case 'help': state.sheet = null; state.view = 'help'; render(); window.scrollTo({ top: 0 }); break;
+      case 'copy-link': {
+        const url = `${location.origin}${location.pathname}`;
+        try {
+          await navigator.clipboard.writeText(url);
+          toast('链接已复制，粘贴到微信群即可');
+        } catch {
+          toast('复制失败，请长按上面的链接手动复制');
+        }
+        break;
+      }
       case 'settings': state.sheet = { kind: 'settings', ctx: {} }; render(); break;
       case 'about': state.sheet = { kind: 'about', ctx: {} }; render(); break;
       case 'close-sheet': state.sheet = null; render(); break;

@@ -1,6 +1,8 @@
 // 渲染层：纯函数，输入"视图模型"，输出 HTML 字符串。不含任何事件与状态。
 // 速查模式：高对比、系统字体、大字号、信息紧凑——为车内强光与单手操作优化。
 
+import { MANUAL } from './manual.js';
+
 const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -367,6 +369,30 @@ export function viewTips(vm) {
     <div class="card rows">${vm.trip.tips.map((t) => `<div class="tip"><div class="tip-t">${esc(t.title)}</div><div class="tip-x">${esc(t.text)}</div></div>`).join('')}</div>`;
 }
 
+/* ---------------- 使用手册 ---------------- */
+
+export function viewHelp(vm) {
+  const cards = MANUAL.map((s) => `<section class="card help-sec">
+      <h2 class="help-t">${esc(s.title)}</h2>
+      <ul class="help-list">${s.items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>
+      ${s.note ? `<div class="help-note">${esc(s.note)}</div>` : ''}
+    </section>`).join('');
+  return `<div class="help-head">
+      <h2 class="sec">使用手册</h2>
+      <button class="mini" data-act="tab" data-view="today">回到今天</button>
+    </div>
+    <div class="card help-share">
+      <div class="blk-t">把这个应用发给同伴</div>
+      <div class="help-url">${esc(vm.url || '')}</div>
+      <div class="row">
+        <button class="btn primary" data-act="copy-link">复制链接</button>
+        <button class="btn" data-act="sync">同步与备份</button>
+      </div>
+      <div class="hint">同伴也要先在有网时打开一次、添加到主屏幕，之后才能离线用。</div>
+    </div>
+    ${cards}`;
+}
+
 /* ---------------- 底部弹层 ---------------- */
 
 export function sheet(inner) {
@@ -464,6 +490,7 @@ export function sheetSettings(vm) {
     <div class="sync-block"><div class="blk-t">还没确认的信息</div><ul class="plain">${vm.trip.meta.openQuestions.map((q) => `<li>${esc(q)}</li>`).join('')}</ul></div>
     <div class="sync-block"><div class="blk-t">出行贴士</div><ul class="plain">${vm.trip.tips.map((t) => `<li><b>${esc(t.title)}</b> ${esc(t.text)}</li>`).join('')}</ul></div>
     <div class="sheet-foot">
+      <button class="btn" data-act="help">使用手册</button>
       <button class="btn" data-act="about">关于数据</button>
       <button class="btn danger" data-act="wipe">清除本机全部数据</button>
     </div>`;
@@ -478,7 +505,7 @@ export function sheetAbout(vm) {
       <li>行程骨架的改动由电脑端重新部署生效，你的手记不会被覆盖。</li>
       <li>本机标识：${esc(vm.meta.deviceId)}，导出数据里会带上它，便于分辨谁写的。</li>
     </ul>
-    <div class="sheet-foot"><button class="btn" data-act="close-sheet">知道了</button></div>`;
+    <div class="sheet-foot"><button class="btn primary" data-act="help">看使用手册</button><button class="btn" data-act="close-sheet">知道了</button></div>`;
 }
 
 export function sheetWipeConfirm() {

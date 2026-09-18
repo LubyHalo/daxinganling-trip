@@ -4,7 +4,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
-import { JSDOM } from 'jsdom';
+
+// jsdom 是 devDependency：没装就明确跳过，而不是抛一堆模块解析错误
+let JSDOM;
+try {
+  ({ JSDOM } = await import('jsdom'));
+} catch {
+  console.log('⚠ 跳过冒烟测试：本机没有 jsdom。在项目目录执行 npm install 后重试。');
+  process.exit(0);
+}
 
 const ROOT = path.join(import.meta.dirname, '..');
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').replace(/<script type="module"[\s\S]*?<\/script>/g, '');
@@ -22,7 +30,7 @@ let clipboard = '';
 Object.defineProperty(window.navigator, 'clipboard', { value: { writeText: async (t) => { clipboard = t; } }, configurable: true });
 
 // Node 24 有些全局是只读的（navigator 等），必须用 defineProperty 覆盖
-for (const k of ['window', 'document', 'navigator', 'localStorage', 'HTMLElement', 'Event', 'MouseEvent', 'Node', 'FileReader']) {
+for (const k of ['window', 'document', 'navigator', 'location', 'localStorage', 'HTMLElement', 'Event', 'MouseEvent', 'Node', 'FileReader']) {
   Object.defineProperty(globalThis, k, { value: window[k], writable: true, configurable: true });
 }
 // Node 的 URL 没有 createObjectURL，补上；Blob 用 Node 自带的（有 .text()）
@@ -326,6 +334,23 @@ step('画册模式：行程页挂上河流时间轴，切回速查即卸载', as
   await click('#tabbar [data-view="days"]');
   assert.equal(window.document.documentElement.getAttribute('data-mode'), 'quick');
   assert.equal($('.river-svg'), null, '速查模式不应挂河流（省性能）');
+});
+
+step('使用手册：从设置进入，内容齐全且能复制链接', async () => {
+  await click('[data-act="settings"]');
+  await click('[data-act="help"]');
+  assert.equal(state.view, 'help', '应切到手册视图');
+  assert.equal($('#sheet').hidden, true, '进入手册时应关掉弹层');
+  const text = $('#view').textContent;
+  for (const key of ['添加到主屏幕', '离线缓存 已就绪', '四个页签', '跳过', '推迟到 9.21', '导出文件', '永远不会删掉你手机里的内容', '只存在你这台手机', '常见问题']) {
+    assert.ok(text.includes(key), `手册里应包含「${key}」`);
+  }
+  assert.match($('.help-url').textContent.trim(), /^https?:\/\//, '手册里应显示可分享的本应用链接');
+  clipboard = '';
+  await click('[data-act="copy-link"]');
+  assert.ok(await waitFor(() => clipboard.startsWith('http')), '应能复制应用链接');
+  await click('[data-act="tab"][data-view="today"]');
+  assert.equal(state.view, 'today', '「回到今天」应能离开手册');
 });
 
 step('主题切换与设置页', async () => {

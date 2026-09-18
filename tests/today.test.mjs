@@ -4,7 +4,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
-import { JSDOM } from 'jsdom';
+
+// jsdom 是 devDependency：没装就明确跳过，而不是抛一堆模块解析错误
+let JSDOM;
+try {
+  ({ JSDOM } = await import('jsdom'));
+} catch {
+  console.log('⚠ 跳过日期测试：本机没有 jsdom。在项目目录执行 npm install 后重试。');
+  process.exit(0);
+}
 
 const ROOT = path.join(import.meta.dirname, '..');
 const REAL_DATE = globalThis.Date;
@@ -29,7 +37,7 @@ async function bootAt(isoLocal, { seed = [] } = {}) {
   window.URL.createObjectURL = () => 'blob:mock';
   window.URL.revokeObjectURL = () => {};
   if (seed.length) window.localStorage.setItem('dtrip.records.v1', JSON.stringify(seed));
-  for (const k of ['window', 'document', 'navigator', 'localStorage', 'HTMLElement', 'Event', 'MouseEvent', 'Node', 'FileReader']) {
+  for (const k of ['window', 'document', 'navigator', 'location', 'localStorage', 'HTMLElement', 'Event', 'MouseEvent', 'Node', 'FileReader']) {
     Object.defineProperty(globalThis, k, { value: window[k], writable: true, configurable: true });
   }
   globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => TRIP });
