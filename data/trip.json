@@ -1,0 +1,199 @@
+{
+  "meta": {
+    "id": "daxinganling-2026-09",
+    "title": "大兴安岭 9 日自驾 · 穿越林海与国境线",
+    "start": "2026-09-19",
+    "end": "2026-09-27",
+    "party": ["我", "同行人"],
+    "flights": [
+      { "date": "2026-09-19", "no": "FU6717", "from": "舟山", "to": "哈尔滨", "dep": "10:00", "arr": null, "price": 1420, "ticketed": true },
+      { "date": "2026-09-27", "no": "FU6718", "from": "哈尔滨", "to": "舟山", "dep": "18:50", "arr": null, "price": 1680, "ticketed": true }
+    ],
+    "openQuestions": [
+      "租车信息完全缺失：取车 / 还车地点与时间、租期均未确定。",
+      "两份机票都只记了起飞时间，到达时间、航站楼与行李额待补。",
+      "9.19 落地哈尔滨后前往齐齐哈尔的交通方式与班次未定。",
+      "9.20 齐齐哈尔 → 海拉尔的交通方式未定。",
+      "9.26 / 9.27 的返程交通方式未定（自驾或火车二选一）。",
+      "办防火证的具体地点与时间未落实，奇乾边境报备方式也未确认。",
+      "旧方案里的满洲里在这一版行程中已消失，需确认是否有意去掉。",
+      "文档标题写“7 日”但行程实际是 9 天，命名口径待统一。"
+    ]
+  },
+  "days": [
+    {
+      "date": "2026-09-19",
+      "n": 1,
+      "title": "落地日 · 哈尔滨 → 齐齐哈尔",
+      "route": ["哈尔滨", "齐齐哈尔"],
+      "distanceKm": null,
+      "stops": [
+        { "id": "d1-s1", "name": "米家烤肉", "type": "food", "time": null, "note": "晚餐", "tips": null, "retired": false }
+      ],
+      "stay": { "name": "美希酒店（齐齐哈尔大商新玛特火车站店）", "phone": null, "addr": null, "booked": true, "links": [] },
+      "intel": [],
+      "todos": [
+        "落实租车：取车 / 还车地点与时间、租期",
+        "确定哈尔滨落地后前往齐齐哈尔的交通方式与班次"
+      ]
+    },
+    {
+      "date": "2026-09-20",
+      "n": 2,
+      "title": "转场日 · 齐齐哈尔 → 海拉尔",
+      "route": ["齐齐哈尔", "海拉尔"],
+      "distanceKm": null,
+      "stops": [
+        { "id": "d2-s1", "name": "办防火证", "type": "activity", "time": null, "note": null, "tips": null, "retired": false }
+      ],
+      "stay": { "name": "呼伦贝尔天成彼得国际酒店", "phone": null, "addr": null, "booked": true, "links": [] },
+      "intel": [
+        "🍜 美食：出发前可在海拉尔古城附近先吃顿涮羊肉 / 铁锅炖。",
+        "🌅 玩法：时间富余可逛成吉思汗广场、世界反法西斯战争海拉尔纪念园。"
+      ],
+      "todos": [
+        "办防火证（具体地点与时间待落实）",
+        "确定齐齐哈尔 → 海拉尔的交通方式"
+      ]
+    },
+    {
+      "date": "2026-09-21",
+      "n": 3,
+      "title": "曲水与湿地 · 海拉尔 → 黑山头",
+      "route": ["海拉尔", "莫尔格勒河", "额尔古纳国家湿地公园", "列夫湿地庄园", "黑山头"],
+      "distanceKm": null,
+      "stops": [
+        { "id": "d3-s1", "name": "莫尔格勒河", "type": "sight", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d3-s2", "name": "额尔古纳国家湿地公园", "type": "sight", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d3-s3", "name": "列夫湿地庄园", "type": "sight", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d3-s4", "name": "ATV / UTV", "type": "activity", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d3-s5", "name": "骑马", "type": "activity", "time": null, "note": "骑马（待定）", "tips": null, "retired": false },
+        { "id": "d3-s6", "name": "一品香家常菜", "type": "food", "time": null, "note": "晚饭", "tips": null, "retired": false }
+      ],
+      "stay": { "name": "额尔古纳天骄草原蒙古部落（黑山头镇店）", "phone": null, "addr": null, "booked": true, "links": [] },
+      "intel": [
+        "🎫 门票：莫日格勒河旺季免门票但禁自驾，需乘观光车（约 40 元/人）。",
+        "🎫 门票：额尔古纳湿地为售票景区，傍晚落日最佳。",
+        "🌅 玩法：黑山头骑马 + 草原日落是经典项目。"
+      ],
+      "todos": []
+    },
+    {
+      "date": "2026-09-22",
+      "n": 4,
+      "title": "沿边卡线 · 黑山头 → 恩和",
+      "route": ["黑山头", "186 彩带河", "5卡", "7卡", "恩和"],
+      "distanceKm": null,
+      "stops": [
+        { "id": "d4-s1", "name": "滑草", "type": "activity", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d4-s2", "name": "186 彩带河", "type": "sight", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d4-s3", "name": "5卡", "type": "transit", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d4-s4", "name": "7卡", "type": "transit", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d4-s5", "name": "卓娅俄餐厅", "type": "food", "time": null, "note": null, "tips": null, "retired": false }
+      ],
+      "stay": { "name": "额尔古纳恩和朋来客栈", "phone": null, "addr": null, "booked": true, "links": [] },
+      "intel": [
+        "⚠️ 注意：卡线全程边防公路，身份证随身；沿途加油站少，出发前加满油。",
+        "🎫 门票：186 彩带河为售票景区，需购票入园。",
+        "🍜 美食：恩和 / 室韦一带列巴、俄式早餐值得一试。"
+      ],
+      "todos": []
+    },
+    {
+      "date": "2026-09-23",
+      "n": 5,
+      "title": "林区小环线 · 恩和 → 莫尔道嘎",
+      "route": ["恩和", "7卡", "9卡", "奥洛契庄园", "老鹰嘴", "太平林场", "莫尔道嘎"],
+      "distanceKm": null,
+      "stops": [
+        { "id": "d5-s1", "name": "7卡", "type": "transit", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d5-s2", "name": "9卡", "type": "transit", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d5-s3", "name": "奥洛契庄园", "type": "sight", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d5-s4", "name": "老鹰嘴", "type": "sight", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d5-s5", "name": "太平林场", "type": "transit", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d5-s6", "name": "胡老大铁锅炖", "type": "food", "time": null, "note": null, "tips": null, "retired": false }
+      ],
+      "stay": { "name": "额尔古纳濒河宾馆", "phone": null, "addr": null, "booked": true, "links": [] },
+      "intel": [
+        "🎫 门票：奥洛契庄园（太极大地景观 + 大碑）为售票景区，价格以现场公示为准。",
+        "🍜 美食：林区风味以铁锅炖、农家菜为主。"
+      ],
+      "todos": []
+    },
+    {
+      "date": "2026-09-24",
+      "n": 6,
+      "title": "边境秘境 · 莫尔道嘎 → 奇乾",
+      "route": ["莫尔道嘎", "根白公路", "白鹿岛", "奇乾"],
+      "distanceKm": null,
+      "stops": [
+        { "id": "d6-s1", "name": "根白公路", "type": "sight", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d6-s2", "name": "白鹿岛", "type": "sight", "time": null, "note": null, "tips": null, "retired": false }
+      ],
+      "stay": { "name": "额尔古纳奇乾乡二黑农家院", "phone": null, "addr": null, "booked": true, "links": [] },
+      "intel": [
+        "⚠️ 注意：奇乾为边境村落，需报备方可进入；住宿极少，旺季务必提前订。",
+        "⚠️ 注意：驯鹿部落与边境乡道手机经常无信号，务必提前下载离线地图。",
+        "⚠️ 注意：奇乾方向的边境原始森林比莫尔道嘎景区更野、还免门票，可自行取舍。"
+      ],
+      "todos": [
+        "完成奇乾边境报备（报备方式待确认）"
+      ]
+    },
+    {
+      "date": "2026-09-25",
+      "n": 7,
+      "title": "林海与驯鹿 · 奇乾 → 根河",
+      "route": ["奇乾", "伊克萨玛公园", "阿尤莎驯鹿部落", "满归", "根河"],
+      "distanceKm": null,
+      "stops": [
+        { "id": "d7-s1", "name": "伊克萨玛公园", "type": "sight", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d7-s2", "name": "阿尤莎驯鹿部落", "type": "activity", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d7-s3", "name": "满归", "type": "transit", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d7-s4", "name": "小龙烧烤", "type": "food", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d7-s5", "name": "兴源涮烤", "type": "food", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d7-s6", "name": "开门红早餐店", "type": "food", "time": null, "note": null, "tips": null, "retired": false },
+        { "id": "d7-s7", "name": "群诚餐馆", "type": "food", "time": null, "note": null, "tips": null, "retired": false }
+      ],
+      "stay": { "name": "根河古穆珍敖乡民宿", "phone": null, "addr": null, "booked": true, "links": [] },
+      "intel": [
+        "🎫 门票：伊克萨玛国家森林公园可徒步林海步道，建议穿防滑登山鞋。"
+      ],
+      "todos": []
+    },
+    {
+      "date": "2026-09-26",
+      "n": 8,
+      "title": "长途赶路 · 根河 → 齐齐哈尔",
+      "route": ["根河", "齐齐哈尔"],
+      "distanceKm": null,
+      "stops": [],
+      "stay": { "name": "御枫酒店（齐齐哈尔大商新玛特中环广场店）", "phone": null, "addr": null, "booked": true, "links": [] },
+      "intel": [
+        "⚠️ 注意：本日为全程最长的一段赶路日。"
+      ],
+      "todos": [
+        "确定根河 → 齐齐哈尔的返程交通方式（自驾或火车）"
+      ]
+    },
+    {
+      "date": "2026-09-27",
+      "n": 9,
+      "title": "归程 · 齐齐哈尔 → 哈尔滨 → 舟山",
+      "route": ["齐齐哈尔", "哈尔滨", "舟山"],
+      "distanceKm": null,
+      "stops": [],
+      "stay": null,
+      "intel": [],
+      "todos": [
+        "确定齐齐哈尔 → 哈尔滨的返程交通方式"
+      ]
+    }
+  ],
+  "tips": [
+    { "title": "温差与衣物", "text": "草原、林区昼夜温差大，早晚加一件外套；防晒、防蚊同样别忘。" },
+    { "title": "证件随身", "text": "全程随身携带身份证，途经边防检查站与口岸时需查验。" },
+    { "title": "路况与补给", "text": "部分林区与边防公路为砂石路面，请控制车速；加油补给尽量在大城镇提前完成。" },
+    { "title": "住宿预订", "text": "奇乾、恩和等小镇住宿选择有限，旺季务必提前预订。" }
+  ]
+}

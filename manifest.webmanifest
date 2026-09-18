@@ -1,0 +1,17 @@
+{
+  "name": "大兴安岭 9 日 · 行程助手",
+  "short_name": "行程助手",
+  "description": "离线可用的行程助手：路线、景点、住宿、美食、打卡与旅行手记",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1f19",
+  "theme_color": "#12352a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

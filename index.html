@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>大兴安岭 9 日 · 行程助手</title>
+<meta name="description" content="离线可用的行程助手：路线、景点、住宿、美食、打卡与旅行手记">
+<meta name="theme-color" content="#12352a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="行程助手">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header id="topbar"></header>
+<main id="view"><div class="card empty">正在加载行程…</div></main>
+<nav id="tabbar">
+  <button data-act="tab" data-view="today" class="on">今天</button>
+  <button data-act="tab" data-view="days">行程</button>
+  <button data-act="tab" data-view="notes">手记</button>
+</nav>
+<div id="sheet" hidden></div>
+<div id="toast" hidden></div>
+<noscript><div class="card empty">这个应用需要开启 JavaScript。</div></noscript>
+<script type="module" src="app/main.js"></script>
+</body>
+</html>
